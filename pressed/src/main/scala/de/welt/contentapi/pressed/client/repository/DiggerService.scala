@@ -13,29 +13,29 @@ import play.api.libs.ws.{WSClient, WSResponse}
 import scala.concurrent.Future
 import scala.util.Try
 
-@ImplementedBy(classOf[PressedDiggerClientImpl])
-sealed trait PressedDiggerClient {
+@ImplementedBy(classOf[DiggerServiceImpl])
+sealed trait DiggerService {
 
   /**
     * Get an ApiPressedSection by path from Digger REST Endpoint
     *
     * @param path SectionPath for the Section, e.g. /sport/
     */
-  protected[client] def findByPath(path: String)
+  def findByPath(path: String)
                                   (implicit requestHeaders: RequestHeaders = Seq.empty): Future[ApiPressedSectionResponse]
 }
 
 @Singleton
-class PressedDiggerClientImpl @Inject()(ws: WSClient,
-                                        metrics: Metrics,
-                                        capi: CapiExecutionContext)
-  extends AbstractService[ApiPressedSectionResponse](ws, metrics, ServiceConfiguration("digger"), capi) with PressedDiggerClient {
+class DiggerServiceImpl @Inject()(ws: WSClient,
+                                  metrics: Metrics,
+                                  capi: CapiExecutionContext)
+  extends AbstractService[ApiPressedSectionResponse](ws, metrics, ServiceConfiguration("digger"), capi) with DiggerService {
 
   import AbstractService.implicitConversions._
 
   override val validate: WSResponse ⇒ Try[ApiPressedSectionResponse] = response ⇒ response.json.result.validate[ApiPressedSectionResponse]
 
-  override protected[client] def findByPath(path: String)
+  override def findByPath(path: String)
                                            (implicit requestHeaders: RequestHeaders = Seq.empty): Future[ApiPressedSectionResponse] = {
     execute(urlArguments = Seq(path))
   }

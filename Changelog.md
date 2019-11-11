@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.0 (2019-11-11)
+
+### Breaking Changes
+- [PRESSED] remove all services for accessing pre-pressed sections from Digger from S3
+- [PRESSED] make REST digger service public and rename to have same naming as `CiggerService`
+
+### To-Do for developers:
+Don't use `PressedSectionService` anymore. Use `DiggerService` directly
+
 ## 5.3 (2019-10-30)
 
 ### Changes
