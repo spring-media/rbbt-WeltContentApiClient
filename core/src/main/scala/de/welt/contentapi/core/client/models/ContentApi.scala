@@ -49,30 +49,30 @@ sealed trait AbstractParam[T] {
     * @return [[scala.Option]] wrapped value if value was validated (according to [[PrimitiveParam.valueToStringOpt]])
     *         <br/> [[scala.None]] otherwise
     */
-  def valueToStringOpt: T ⇒ Option[String]
+  def valueToStringOpt: T => Option[String]
 
   /**
     * @return tuple of key and [[valueToStringOpt]]
     */
-  def asTuple: Option[(String, String)] = valueToStringOpt(value).map { v ⇒ (name, v) }
+  def asTuple: Option[(String, String)] = valueToStringOpt(value).map { v => (name, v) }
 }
 
 protected abstract class ListParam[T](override val value: List[T]) extends AbstractParam[List[T]] {
   // conjunction by default
   def operator: String = ","
 
-  override def valueToStringOpt: List[T] ⇒ Option[String] = {
-    case Nil ⇒ None
-    case list ⇒
+  override def valueToStringOpt: List[T] => Option[String] = {
+    case Nil => None
+    case list =>
       val cleanedList = list.map(PrimitiveParam[T]().valueToStringOpt).collect {
-        case Some(v) ⇒ v
+        case Some(v) => v
       }.mkString(operator)
       Some(cleanedList)
   }
 }
 
 protected abstract class ValueParam[T](override val value: T) extends AbstractParam[T] {
-  override def valueToStringOpt: T ⇒ Option[String] = PrimitiveParam[T]().valueToStringOpt
+  override def valueToStringOpt: T => Option[String] = PrimitiveParam[T]().valueToStringOpt
 }
 
 private case class PrimitiveParam[T]() {
@@ -82,17 +82,17 @@ private case class PrimitiveParam[T]() {
     * @return
     */
   //noinspection ScalaStyle
-  def valueToStringOpt: T ⇒ Option[String] = {
-    case s: String if containsTextContent(s) ⇒ Some(stripWhiteSpaces(s))
-    case _: String ⇒ None
+  def valueToStringOpt: T => Option[String] = {
+    case s: String if containsTextContent(s) => Some(stripWhiteSpaces(s))
+    case _: String => None
 
-    case i: Int if Int.MinValue != i ⇒ Some(i.toString)
-    case _: Int ⇒ None
+    case i: Int if Int.MinValue != i => Some(i.toString)
+    case _: Int => None
 
-    case i: Instant if Instant.MIN != i ⇒ Some(i.toString)
-    case _: Instant ⇒ None
+    case i: Instant if Instant.MIN != i => Some(i.toString)
+    case _: Instant => None
 
-    case unknown@_ ⇒
+    case unknown@_ =>
       Logger(getClass.getName.stripSuffix("$")).warn(s"Unknown value type: ${unknown.getClass.toString}")
       None
   }

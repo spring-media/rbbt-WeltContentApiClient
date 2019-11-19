@@ -49,7 +49,7 @@ sealed trait ContentSearchService {
     *         max allowed is [[ContentSearchService.maxResultSize]]
     *         [[ContentSearchService.defaultResultSize]] if [[None]] was passed
     */
-  def sanitizeLimit(maybeLimit: Option[Int]): Int = maybeLimit.map(l ⇒ Math.abs(Math.min(l, maxResultSize))) getOrElse defaultResultSize
+  def sanitizeLimit(maybeLimit: Option[Int]): Int = maybeLimit.map(l => Math.abs(Math.min(l, maxResultSize))) getOrElse defaultResultSize
 }
 
 @Singleton
@@ -61,7 +61,7 @@ class ContentSearchServiceImpl @Inject()(ws: WSClient,
   import AbstractService.implicitConversions._
   import de.welt.contentapi.core.models.ApiReads.apiSearchResponseReads
 
-  override val validate: WSResponse ⇒ Try[ApiSearchResponse] = response ⇒ (response.json.result \ "response").validate[ApiSearchResponse]
+  override val validate: WSResponse => Try[ApiSearchResponse] = response => (response.json.result \ "response").validate[ApiSearchResponse]
 
   override def search(apiContentSearch: ApiContentSearch)
                      (implicit requestHeaders: RequestHeaders = Seq.empty): Future[ApiSearchResponse] = {
@@ -70,6 +70,6 @@ class ContentSearchServiceImpl @Inject()(ws: WSClient,
 
   override def batchGetForId(ids: Seq[String])(implicit requestHeaders: Option[RequestHeaders]): Future[Seq[ApiContent]] =
     super
-      .execute(urlArguments = Nil, parameters = Seq("id" → ids.mkString("|")))
+      .execute(urlArguments = Nil, parameters = Seq("id" -> ids.mkString("|")))
       .map(_.results)
 }

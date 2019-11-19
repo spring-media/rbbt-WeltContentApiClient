@@ -73,11 +73,11 @@ object testImplicits {
     def updatePaths(maybeParentPath: Option[String] = None): Unit = {
 
       current.id.path = maybeParentPath match {
-        case None ⇒ "/"
-        case Some(parentPath) ⇒ parentPath + current.id.escenicId + "/"
+        case None => "/"
+        case Some(parentPath) => parentPath + current.id.escenicId + "/"
       }
 
-      current.children.foreach { child ⇒
+      current.children.foreach { child =>
         child.updatePaths(Some(current.id.path))
       }
 

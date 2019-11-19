@@ -77,14 +77,14 @@ object RawReads {
   implicit lazy val rawChannelSponsoringReads: Reads[RawSponsoringConfig] = new Reads[RawSponsoringConfig] {
     private lazy val defaults: RawSponsoringConfig = RawSponsoringConfig()
     override def reads(json: JsValue): JsResult[RawSponsoringConfig] = json match {
-      case JsObject(underlying) ⇒ JsSuccess(RawSponsoringConfig(
+      case JsObject(underlying) => JsSuccess(RawSponsoringConfig(
         logo = underlying.get("logo").map(_.as[String]),
         slogan = underlying.get("slogan").map(_.as[String]),
         hidden = underlying.get("hidden").map(_.as[Boolean]).getOrElse(defaults.hidden),
         link = underlying.get("link").map(_.as[RawSectionReference]),
         brandstation = underlying.get("brandstation").map(_.as[String])
       ))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
@@ -94,32 +94,32 @@ object RawReads {
     private lazy val defaults: RawElement = RawElement()
 
     override def reads(json: JsValue): JsResult[RawElement] = json match {
-      case JsObject(underlying) ⇒ JsSuccess(RawElement(
+      case JsObject(underlying) => JsSuccess(RawElement(
         id = underlying.get("id").map(_.as[String]).getOrElse(defaults.id),
         `type` = underlying.get("type").map(_.as[String]).getOrElse(defaults.`type`),
         assets = underlying.get("assets").map(_.as[List[RawAsset]]).filter(_.nonEmpty)
       ))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
   implicit lazy val rawChannelSiteBuildingReads: Reads[RawChannelSiteBuilding] = new Reads[RawChannelSiteBuilding] {
     override def reads(json: JsValue): JsResult[RawChannelSiteBuilding] = json match {
-      case JsObject(underlying) ⇒ JsSuccess(RawChannelSiteBuilding(
+      case JsObject(underlying) => JsSuccess(RawChannelSiteBuilding(
         fields = underlying.get("fields").map(_.as[Map[String, String]]).map(_.filter(EmptyMapValues)),
         sub_navigation = underlying.get("sub_navigation").map(_.as[Seq[RawSectionReference]]).filter(_.nonEmpty),
         elements = underlying.get("elements").map(_.as[Seq[RawElement]]).filter(_.nonEmpty)
       ))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
   implicit lazy val rawChannelHeaderReads: Reads[RawChannelHeader] = new Reads[RawChannelHeader] {
     private lazy val defaults: RawChannelHeader = RawChannelHeader()
     override def reads(json: JsValue): JsResult[RawChannelHeader] = json match {
-      case JsObject(underlying) ⇒ (for {
-        hidden ← underlying.get("hidden").map(_.as[Boolean]).orElse(Some(defaults.hidden))
-        adIndicator ← underlying.get("adIndicator").map(_.as[Boolean]).orElse(Some(defaults.adIndicator))
+      case JsObject(underlying) => (for {
+        hidden <- underlying.get("hidden").map(_.as[Boolean]).orElse(Some(defaults.hidden))
+        adIndicator <- underlying.get("adIndicator").map(_.as[Boolean]).orElse(Some(defaults.adIndicator))
       } yield JsSuccess(
         RawChannelHeader(
           logo = underlying.get("logo").map(_.as[String]).filter(_.nonEmpty),
@@ -132,7 +132,7 @@ object RawReads {
           headerReference = underlying.get("headerReference").map(_.as[RawSectionReference])
         )
       )).getOrElse(jsErrorInvalidData("RawChannelHeader", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
   implicit lazy val rawChannelContentConfigurationReads: Reads[RawChannelContentConfiguration] = Json.reads[RawChannelContentConfiguration]
@@ -141,11 +141,11 @@ object RawReads {
   implicit lazy val rawChannelTaboolaCommercialReads: Reads[RawChannelTaboolaCommercial] = new Reads[RawChannelTaboolaCommercial] {
     private lazy val defaults: RawChannelTaboolaCommercial = RawChannelTaboolaCommercial()
     override def reads(json: JsValue): JsResult[RawChannelTaboolaCommercial] = json match {
-      case JsObject(underlying) ⇒ (for {
-        showNews ← underlying.get("showNews").map(_.as[Boolean]).orElse(Some(defaults.showNews))
-        showWeb ← underlying.get("showWeb").map(_.as[Boolean]).orElse(Some(defaults.showWeb))
-        showWebExtended ← underlying.get("showWebExtended").map(_.as[Boolean]).orElse(Some(defaults.showWebExtended))
-        showNetwork ← underlying.get("showNetwork").map(_.as[Boolean]).orElse(Some(defaults.showNetwork))
+      case JsObject(underlying) => (for {
+        showNews <- underlying.get("showNews").map(_.as[Boolean]).orElse(Some(defaults.showNews))
+        showWeb <- underlying.get("showWeb").map(_.as[Boolean]).orElse(Some(defaults.showWeb))
+        showWebExtended <- underlying.get("showWebExtended").map(_.as[Boolean]).orElse(Some(defaults.showWebExtended))
+        showNetwork <- underlying.get("showNetwork").map(_.as[Boolean]).orElse(Some(defaults.showNetwork))
       } yield JsSuccess(
         RawChannelTaboolaCommercial(
           showNews = showNews,
@@ -154,19 +154,19 @@ object RawReads {
           showNetwork = showNetwork
         )
       )).getOrElse(jsErrorInvalidData("RawChannelTaboolaCommercial", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
   implicit lazy val rawChannelCommercialReads = new Reads[RawChannelCommercial] {
     private lazy val defaults: RawChannelCommercial = RawChannelCommercial()
     override def reads(json: JsValue): JsResult[RawChannelCommercial] = json match {
-      case JsObject(underlying) ⇒ (for {
-        definesAdTag ← underlying.get("definesAdTag").map(_.as[Boolean]).orElse(Some(defaults.definesAdTag))
-        definesVideoAdTag ← underlying.get("definesVideoAdTag").map(_.as[Boolean]).orElse(Some(defaults.definesVideoAdTag))
-        contentTaboola ← underlying.get("contentTaboola").map(_.as[RawChannelTaboolaCommercial]).orElse(Some(defaults.contentTaboola))
-        showFallbackAds ← underlying.get("showFallbackAds").map(_.as[Boolean]).orElse(Some(defaults.showFallbackAds))
-        disableAdvertisement ← underlying.get("disableAdvertisement").map(_.as[Boolean]).orElse(Some(false))
+      case JsObject(underlying) => (for {
+        definesAdTag <- underlying.get("definesAdTag").map(_.as[Boolean]).orElse(Some(defaults.definesAdTag))
+        definesVideoAdTag <- underlying.get("definesVideoAdTag").map(_.as[Boolean]).orElse(Some(defaults.definesVideoAdTag))
+        contentTaboola <- underlying.get("contentTaboola").map(_.as[RawChannelTaboolaCommercial]).orElse(Some(defaults.contentTaboola))
+        showFallbackAds <- underlying.get("showFallbackAds").map(_.as[Boolean]).orElse(Some(defaults.showFallbackAds))
+        disableAdvertisement <- underlying.get("disableAdvertisement").map(_.as[Boolean]).orElse(Some(false))
       } yield JsSuccess(
         RawChannelCommercial(
           definesAdTag = definesAdTag,
@@ -176,13 +176,13 @@ object RawReads {
           disableAdvertisement = disableAdvertisement
         )
       )).getOrElse(jsErrorInvalidData("RawChannelCommercial", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
   implicit lazy val rawChannelStageCustomModuleReads: Reads[RawChannelStageCustomModule] = new Reads[RawChannelStageCustomModule] {
     override def reads(json: JsValue): JsResult[RawChannelStageCustomModule] = json match {
-      case JsObject(underlying) ⇒ (for {
+      case JsObject(underlying) => (for {
         index <- underlying.get("index").map(_.as[Int])
         module <- underlying.get("module").map(_.as[String])
       } yield JsSuccess(
@@ -197,7 +197,7 @@ object RawReads {
           logo = underlying.get("logo").map(_.as[String]).filter(_.nonEmpty)
         )
       )).getOrElse(jsErrorInvalidData("RawChannelStageCustomModule", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
@@ -208,11 +208,11 @@ object RawReads {
 
   implicit lazy val rawChannelStageIgnoredReads = new Reads[RawChannelStageIgnored] {
     override def reads(json: JsValue): JsResult[RawChannelStageIgnored] = json match {
-      case JsObject(underlying) ⇒ underlying
+      case JsObject(underlying) => underlying
         .get("index").map(_.as[Int])
-        .map(index ⇒ JsSuccess(RawChannelStageIgnored(index)))
+        .map(index => JsSuccess(RawChannelStageIgnored(index)))
         .getOrElse(jsErrorInvalidData("RawChannelStageIgnored", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
@@ -223,7 +223,7 @@ object RawReads {
           Json.fromJson[RawChannelStageCustomModule](json)
         case RawChannelStage.TypeModule =>
           Json.fromJson[RawChannelStageCustomModule](json)
-        case RawChannelStage.TypeCurated ⇒
+        case RawChannelStage.TypeCurated =>
           Json.fromJson[RawChannelStageCurated](json)
         case RawChannelStage.TypeCommercial =>
           Json.fromJson[RawChannelStageCommercial](json)
@@ -231,7 +231,7 @@ object RawReads {
           Json.fromJson[RawChannelStageTracking](json)
         case RawChannelStage.TypeConfiguredId =>
           Json.fromJson[RawChannelStageConfiguredId](json)
-        case _ ⇒ Json.fromJson[RawChannelStageIgnored](json)
+        case _ => Json.fromJson[RawChannelStageIgnored](json)
       }
     }
   }
@@ -244,7 +244,7 @@ object RawReads {
     private lazy val defaults: RawChannelConfiguration = RawChannelConfiguration()
 
     override def reads(json: JsValue): JsResult[RawChannelConfiguration] = json match {
-      case JsObject(underlying) ⇒
+      case JsObject(underlying) =>
         val maybeChannelHeader = underlying.get("header").map(_.as[RawChannelHeader])
         val maybeSponsoringConfig = underlying.get("sponsoring").map(_.as[RawSponsoringConfig])
         val maybeSiteBuilding = underlying.get("siteBuilding").map(_.as[RawChannelSiteBuilding]).filterNot(_.isEmpty)
@@ -262,17 +262,17 @@ object RawReads {
           brand = underlying.get("brand").map(_.as[Boolean]).getOrElse(defaults.brand),
           master = underlying.get("master").map(_.as[Boolean]).getOrElse(defaults.master)
         ))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
   val MigrationHintFieldName = "__migrated"
 
   implicit lazy val rawChannelReads: Reads[RawChannel] = new Reads[RawChannel] {
     override def reads(json: JsValue): JsResult[RawChannel] = json match {
-      case JsObject(underlying) ⇒ (for {
-        id ← underlying.get("id").map(_.as[RawChannelId])
-        config ← underlying.get("config").map(_.as[RawChannelConfiguration])
-        metadata ← underlying.get("metadata").map(_.as[RawMetadata])
+      case JsObject(underlying) => (for {
+        id <- underlying.get("id").map(_.as[RawChannelId])
+        config <- underlying.get("config").map(_.as[RawChannelConfiguration])
+        metadata <- underlying.get("metadata").map(_.as[RawMetadata])
       } yield {
         JsSuccess(
           RawChannel(
@@ -288,7 +288,7 @@ object RawReads {
       }
         )
         .getOrElse(jsErrorInvalidData("RawChannel[noChildren]", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 
@@ -316,7 +316,7 @@ object RawWrites {
 
   implicit lazy val rawChannelStageCustomModuleWrites: Writes[RawChannelStageCustomModule] = (
     (__ \ "index").write[Int] and
-      OWrites[String](_ ⇒ JsObject(Map("type" → JsString(RawChannelStage.TypeCustomModule)))) and
+      OWrites[String](_ => JsObject(Map("type" -> JsString(RawChannelStage.TypeCustomModule)))) and
       (__ \ "hidden").write[Boolean] and
       (__ \ "trackingName").writeNullable[String] and
       (__ \ "link").writeNullable[RawSectionReference] and
@@ -328,7 +328,7 @@ object RawWrites {
 
   implicit lazy val rawChannelStageCommercialWrites: Writes[RawChannelStageCommercial] = (
     (__ \ "index").write[Int] and
-      OWrites[String](_ ⇒ JsObject(Map("type" → JsString(RawChannelStage.TypeCommercial)))) and
+      OWrites[String](_ => JsObject(Map("type" -> JsString(RawChannelStage.TypeCommercial)))) and
       (__ \ "hidden").write[Boolean] and
       (__ \ "trackingName").writeNullable[String] and
       (__ \ "link").writeNullable[RawSectionReference] and
@@ -337,7 +337,7 @@ object RawWrites {
 
   implicit lazy val rawChannelStageCuratedWrites: Writes[RawChannelStageCurated] = (
     (__ \ "index").write[Int] and
-      OWrites[String](_ ⇒ JsObject(Map("type" → JsString(RawChannelStage.TypeCurated)))) and
+      OWrites[String](_ => JsObject(Map("type" -> JsString(RawChannelStage.TypeCurated)))) and
       (__ \ "hidden").write[Boolean] and
       (__ \ "trackingName").writeNullable[String] and
       (__ \ "link").writeNullable[RawSectionReference] and
@@ -353,7 +353,7 @@ object RawWrites {
 
   implicit lazy val rawChannelStageConfiguredIdWrites: Writes[RawChannelStageConfiguredId] = (
     (__ \ "index").write[Int] and
-      OWrites[String](_ ⇒ JsObject(Map("type" → JsString(RawChannelStage.TypeConfiguredId)))) and
+      OWrites[String](_ => JsObject(Map("type" -> JsString(RawChannelStage.TypeConfiguredId)))) and
       (__ \ "hidden").write[Boolean] and
       (__ \ "trackingName").writeNullable[String] and
       (__ \ "link").writeNullable[RawSectionReference] and
@@ -365,7 +365,7 @@ object RawWrites {
 
   implicit lazy val rawChannelStageTrackingWrites: Writes[RawChannelStageTracking] = (
     (__ \ "index").write[Int] and
-      OWrites[String](_ ⇒ JsObject(Map("type" → JsString(RawChannelStage.TypeTracking)))) and
+      OWrites[String](_ => JsObject(Map("type" -> JsString(RawChannelStage.TypeTracking)))) and
       (__ \ "hidden").write[Boolean] and
       (__ \ "trackingName").writeNullable[String] and
       (__ \ "link").writeNullable[RawSectionReference] and
@@ -388,7 +388,7 @@ object RawWrites {
         Json.toJson(c)(rawChannelStageConfiguredIdWrites)
       case c: RawChannelStageTracking =>
         Json.toJson(c)(rawChannelStageTrackingWrites)
-      case err@_ ⇒ throw new IllegalStateException(s"[DEV-ERROR] Missing case-matching for new RawChannelStage: $err")
+      case err@_ => throw new IllegalStateException(s"[DEV-ERROR] Missing case-matching for new RawChannelStage: $err")
     }
   }
 
@@ -422,12 +422,12 @@ object PartialRawChannelWrites {
     override def writes(o: RawChannel): JsValue = {
 
       JsObject(Map(
-        "id" → Json.toJson(o.id),
-        "hasChildren" → JsBoolean(o.hasChildren),
-        "config" → Json.toJson(o.config),
-        "metadata" → Json.toJson(o.metadata)
+        "id" -> Json.toJson(o.id),
+        "hasChildren" -> JsBoolean(o.hasChildren),
+        "config" -> Json.toJson(o.config),
+        "metadata" -> Json.toJson(o.metadata)
       )
-        ++ o.stageConfiguration.map { stageConfiguration ⇒ "stageConfiguration" → Json.toJson(stageConfiguration) }
+        ++ o.stageConfiguration.map { stageConfiguration => "stageConfiguration" -> Json.toJson(stageConfiguration) }
       )
     }
   }
@@ -445,9 +445,9 @@ object PartialRawChannelWrites {
   implicit lazy val allChildrenWrites: Writes[RawChannel] = new Writes[RawChannel] {
     override def writes(channel: RawChannel): JsValue = {
       JsObject(Map(
-        "id" → Json.toJson(channel.id),
-        "hasChildren" → JsBoolean(channel.hasChildren),
-        "children" → Json.toJson(channel.children)(Writes.seq[RawChannel](allChildrenWrites))
+        "id" -> Json.toJson(channel.id),
+        "hasChildren" -> JsBoolean(channel.hasChildren),
+        "children" -> Json.toJson(channel.children)(Writes.seq[RawChannel](allChildrenWrites))
       ))
     }
   }
@@ -463,10 +463,10 @@ object PartialRawChannelReads {
 
   implicit lazy val noChildrenReads: Reads[RawChannel] = new Reads[RawChannel] {
     override def reads(json: JsValue): JsResult[RawChannel] = json match {
-      case JsObject(underlying) ⇒ (for {
-        id ← underlying.get("id").map(_.as[RawChannelId])
-        config ← underlying.get("config").map(_.as[RawChannelConfiguration])
-        metadata ← underlying.get("metadata").map(_.as[RawMetadata])
+      case JsObject(underlying) => (for {
+        id <- underlying.get("id").map(_.as[RawChannelId])
+        config <- underlying.get("config").map(_.as[RawChannelConfiguration])
+        metadata <- underlying.get("metadata").map(_.as[RawMetadata])
       } yield {
         JsSuccess(
           RawChannel(
@@ -479,7 +479,7 @@ object PartialRawChannelReads {
           ))
       })
         .getOrElse(jsErrorInvalidData("RawChannel[noChildren]", json))
-      case err@_ ⇒ jsErrorInvalidJson(err)
+      case err@_ => jsErrorInvalidJson(err)
     }
   }
 }

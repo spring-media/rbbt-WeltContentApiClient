@@ -23,12 +23,12 @@ class TreeServiceImpl @Inject()(rawTreeServiceImpl: RawTreeService,
 
     rawTreeServiceImpl.root
       .flatMap(_.findByPath(path))
-      .map { ch ⇒
+      .map { ch =>
 
         val apiChannel = converter.apiChannelFromRawChannel(ch)
         val apiConfiguration = converter.apiConfigurationFromRawChannel(ch)
 
-        apiChannel → apiConfiguration
+        apiChannel -> apiConfiguration
       }
   }
 }

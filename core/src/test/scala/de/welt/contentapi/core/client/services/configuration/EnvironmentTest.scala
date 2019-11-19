@@ -19,7 +19,7 @@ class EnvironmentTest extends PlaySpec {
           |}
         """.stripMargin))
 
-      parsed mustBe Success("foo" → mutable.Buffer("bar", "baz"))
+      parsed mustBe Success("foo" -> mutable.Buffer("bar", "baz"))
     }
 
     "find the root module in empty" in {
@@ -33,8 +33,8 @@ class EnvironmentTest extends PlaySpec {
       */
     "find the root module in an simple setup" in {
       Environment.findCurrentModule(Map(
-        "common" → mutable.Buffer.empty,
-        "article" → mutable.Buffer("common")
+        "common" -> mutable.Buffer.empty,
+        "article" -> mutable.Buffer("common")
       )) mustBe Some("article")
     }
 
@@ -47,9 +47,9 @@ class EnvironmentTest extends PlaySpec {
       */
     "find the root module deeper hierarchies" in {
       Environment.findCurrentModule(Map(
-        "common" → mutable.Buffer.empty,
-        "article" → mutable.Buffer("common"),
-        "author" → mutable.Buffer("article")
+        "common" -> mutable.Buffer.empty,
+        "article" -> mutable.Buffer("common"),
+        "author" -> mutable.Buffer("article")
       )) mustBe Some("author")
     }
 
@@ -62,10 +62,10 @@ class EnvironmentTest extends PlaySpec {
       */
     "find the root module broader hierarchies" in {
       Environment.findCurrentModule(Map(
-        "common" → mutable.Buffer.empty,
-        "article" → mutable.Buffer("common"),
-        "section" → mutable.Buffer("common"),
-        "preview" → mutable.Buffer("article", "section")
+        "common" -> mutable.Buffer.empty,
+        "article" -> mutable.Buffer("common"),
+        "section" -> mutable.Buffer("common"),
+        "preview" -> mutable.Buffer("article", "section")
       )) mustBe Some("preview")
     }
 

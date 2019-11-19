@@ -26,8 +26,8 @@ object PressedReads {
   implicit lazy val apiPressedEmbedReads: Reads[ApiPressedEmbed] = Json.reads[ApiPressedEmbed]
 
   implicit lazy val apiPressedContentReads: Reads[ApiPressedContent] = {
-    case json@JsObject(underlying) ⇒ (for {
-      content ← underlying.get("content").map(_.as[ApiContent])
+    case json@JsObject(underlying) => (for {
+      content <- underlying.get("content").map(_.as[ApiContent])
     } yield JsSuccess(
       ApiPressedContent(
         content = content,
@@ -38,7 +38,7 @@ object PressedReads {
       )))
       .getOrElse(JsError("Could not validate json [something is missing]. " + Json.prettyPrint(json)))
 
-    case err@_ ⇒ JsError(s"expected js-object, but was $err")
+    case err@_ => JsError(s"expected js-object, but was $err")
   }
 
   implicit lazy val apiPressedContentResponseReads: Reads[ApiPressedContentResponse] = Json.reads[ApiPressedContentResponse]

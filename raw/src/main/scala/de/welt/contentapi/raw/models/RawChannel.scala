@@ -42,18 +42,18 @@ case class RawChannel(id: RawChannelId,
     */
   def findByPath(search: String): Option[RawChannel] = findByPath(
     search.split('/').filter(_.nonEmpty).toList match {
-      case Nil ⇒ Nil
-      case head :: tail ⇒ tail.scanLeft(s"/$head/")((path, s) ⇒ path + s + "/")
+      case Nil => Nil
+      case head :: tail => tail.scanLeft(s"/$head/")((path, s) => path + s + "/")
     }
   )
 
   private def findByPath(sectionPath: Seq[String]): Option[RawChannel] = {
     sectionPath match {
-      case Nil ⇒
+      case Nil =>
         Some(this)
-      case head :: Nil ⇒
+      case head :: Nil =>
         children.find(_.id.path == head)
-      case head :: tail ⇒
+      case head :: tail =>
         children.find(_.id.path == head).flatMap(_.findByPath(tail))
     }
   }
@@ -62,7 +62,7 @@ case class RawChannel(id: RawChannelId,
     if (id.escenicId == escenicId) {
       Some(this)
     } else {
-      children.flatMap { ch ⇒ ch.findByEscenicId(escenicId) }.headOption
+      children.flatMap { ch => ch.findByEscenicId(escenicId) }.headOption
     }
   }
 
@@ -74,13 +74,13 @@ case class RawChannel(id: RawChannelId,
     */
   final def findByPredicate(p: Predicate[RawChannel]): Seq[RawChannel] = {
     val maybeMatch: Seq[RawChannel] = if (p.test(this)) Seq(this) else Seq.empty
-    maybeMatch ++ children.flatMap { ch: RawChannel ⇒ ch.findByPredicate(p) }
+    maybeMatch ++ children.flatMap { ch: RawChannel => ch.findByPredicate(p) }
   }
 
   @tailrec
   final def root: RawChannel = parent match {
-    case Some(p) ⇒ p.root
-    case None ⇒ this
+    case Some(p) => p.root
+    case None => this
   }
 
   final def updateParentRelations(newParent: Option[RawChannel] = None): Unit = {
@@ -90,8 +90,8 @@ case class RawChannel(id: RawChannelId,
 
   def getBreadcrumb: Seq[RawChannel] = {
     parent match {
-      case None ⇒ this.copy(id = root.id.copy(label = "Home")) :: Nil
-      case Some(p) ⇒ p.getBreadcrumb :+ this
+      case None => this.copy(id = root.id.copy(label = "Home")) :: Nil
+      case Some(p) => p.getBreadcrumb :+ this
     }
   }
 
@@ -100,13 +100,13 @@ case class RawChannel(id: RawChannelId,
     */
   def getMaybeContentOverrides: Option[RawChannelContentConfiguration] = parent match {
     // has own config
-    case _ if this.config.content.isDefined ⇒ this.config.content
+    case _ if this.config.content.isDefined => this.config.content
     // has a parent with config -> use parent's config
-    case Some(configuredParent) if configuredParent.config.content.isDefined ⇒ configuredParent.config.content
+    case Some(configuredParent) if configuredParent.config.content.isDefined => configuredParent.config.content
     //  go up in tree one level and retry
-    case Some(notConfiguredParent) ⇒ notConfiguredParent.getMaybeContentOverrides
+    case Some(notConfiguredParent) => notConfiguredParent.getMaybeContentOverrides
     // nothing found -> None
-    case _ ⇒ None
+    case _ => None
   }
 
 
@@ -131,8 +131,8 @@ case class RawChannel(id: RawChannelId,
 
   /** equals solely on the ```ChannelId``` */
   override def equals(obj: Any): Boolean = obj match {
-    case RawChannel(otherId, _, _, _, _, _, _) ⇒ this.id.hashCode == otherId.hashCode
-    case _ ⇒ false
+    case RawChannel(otherId, _, _, _, _, _, _) => this.id.hashCode == otherId.hashCode
+    case _ => false
   }
 
   override def hashCode: Int = this.id.hashCode
@@ -151,7 +151,7 @@ case class RawChannel(id: RawChannelId,
     * @param newSponsoring New Sponsoring to inherit
     */
   def batchInheritRawChannelSponsoringToAllChildren(newSponsoring: RawSponsoringConfig, user: String): Unit =
-    batchInheritGenericToAllChildren({ rawChannel ⇒ rawChannel.config = rawChannel.config.copy(sponsoring = newSponsoring) }, user)
+    batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(sponsoring = newSponsoring) }, user)
 
   /**
     * set the same RawChannelTheme for all Sub-Channels but not the channel itself
@@ -159,7 +159,7 @@ case class RawChannel(id: RawChannelId,
     * @param newTheme New RawChannelTheme to inherit
     */
   def batchInheritRawChannelThemeToAllChildren(newTheme: RawChannelTheme, user: String): Unit =
-    batchInheritGenericToAllChildren({ rawChannel ⇒ rawChannel.config = rawChannel.config.copy(theme = Some(newTheme)) }, user)
+    batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(theme = Some(newTheme)) }, user)
 
   /**
     * set the same RawChannelHeader for all Sub-Channels but not the channel itself
@@ -167,7 +167,7 @@ case class RawChannel(id: RawChannelId,
     * @param newHeader New header to inherit
     */
   def batchInheritRawChannelHeaderToAllChildren(newHeader: RawChannelHeader, user: String): Unit =
-    batchInheritGenericToAllChildren({ rawChannel ⇒ rawChannel.config = rawChannel.config.copy(header = Some(newHeader)) }, user)
+    batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(header = Some(newHeader)) }, user)
 
   /**
     * set the same RawChannelTaboolaCommercial for all Sub-Channels but not the channel itself
@@ -175,12 +175,12 @@ case class RawChannel(id: RawChannelId,
     * @param newTaboolaConfig New header to inherit
     */
   def batchInheritRawChannelTaboolaCommercialToAllChildren(newTaboolaConfig: RawChannelTaboolaCommercial, user: String): Unit = {
-    batchInheritGenericToAllChildren((rawChannel: RawChannel) ⇒ rawChannel.config.commercial.contentTaboola = newTaboolaConfig, user)
+    batchInheritGenericToAllChildren((rawChannel: RawChannel) => rawChannel.config.commercial.contentTaboola = newTaboolaConfig, user)
   }
 
-  private[models] def batchInheritGenericToAllChildren(applyInheritanceAction: RawChannel ⇒ Unit,
+  private[models] def batchInheritGenericToAllChildren(applyInheritanceAction: RawChannel => Unit,
                                                        user: String,
-                                                       timestamp: Long = Instant.now.toEpochMilli): Unit = this.children.foreach { child ⇒
+                                                       timestamp: Long = Instant.now.toEpochMilli): Unit = this.children.foreach { child =>
     applyInheritanceAction(child)
     child.metadata = child.metadata.copy(changedBy = user, lastModifiedDate = timestamp)
     // enter recursion
@@ -207,8 +207,8 @@ case class RawChannelId(var path: String,
                         escenicId: Long) {
 
   override def equals(obj: Any): Boolean = obj match {
-    case RawChannelId(_, _, otherEce) ⇒ this.escenicId.hashCode == otherEce.hashCode
-    case _ ⇒ false
+    case RawChannelId(_, _, otherEce) => this.escenicId.hashCode == otherEce.hashCode
+    case _ => false
   }
 
   override def hashCode: Int = escenicId.hashCode

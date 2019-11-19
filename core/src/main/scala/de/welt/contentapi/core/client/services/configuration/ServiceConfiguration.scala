@@ -82,19 +82,19 @@ object ServiceConfiguration extends Loggable {
     }
 
     (for {
-      username ← Try(c.getString(ConfigKeyBasicUsername)).map(BasicUsername)
-      password ← Try(c.getString(ConfigKeyBasicPassword)).map(BasicPassword)
+      username <- Try(c.getString(ConfigKeyBasicUsername)).map(BasicUsername)
+      password <- Try(c.getString(ConfigKeyBasicPassword)).map(BasicPassword)
     } yield BasicAuth(username, password))
-      .orElse(Try(c.getString(ConfigKeyApiKey)).map(v ⇒ ApiKey(v)))
+      .orElse(Try(c.getString(ConfigKeyApiKey)).map(v => ApiKey(v)))
       .toOption
   }
 
   def apply(serviceName: String): ServiceConfiguration = {
     val triedConfig = Try(ApiConfiguration.configuration.getConfig("api." + serviceName))
-      .flatMap { config ⇒
+      .flatMap { config =>
         for {
-          host ← Try(config.getString(ConfigKeyHost))
-          endpoint ← Try(config.getString(ConfigKeyEndpoint))
+          host <- Try(config.getString(ConfigKeyHost))
+          endpoint <- Try(config.getString(ConfigKeyEndpoint))
         } yield ServiceConfiguration(serviceName, host, endpoint,
           credentials = credentialsFromConf(config),
           circuitBreaker = CircuitBreakerSettings(config),
@@ -102,10 +102,10 @@ object ServiceConfiguration extends Loggable {
         )
       }
     triedConfig match {
-      case Success(value) ⇒
+      case Success(value) =>
         log.debug(s"Configured Service('$serviceName') -> $value")
         value
-      case Failure(th) ⇒
+      case Failure(th) =>
         log.error("Could not configure Service.", th)
         ApiConfiguration.reportError("api." + serviceName, s"Service '$serviceName' was not configured correctly.", th)
     }

@@ -5,7 +5,7 @@ import de.welt.contentapi.pressed.models.{ApiChannel, ApiConfiguration}
 import de.welt.contentapi.raw.client.services.RawTreeService
 import de.welt.contentapi.raw.models.{RawChannel, RawChannelId}
 import org.mockito.Mockito
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
 class TreeServiceTest extends PlaySpec with MockitoSugar {
@@ -30,7 +30,7 @@ class TreeServiceTest extends PlaySpec with MockitoSugar {
 
       val response = treeService.find("/")
 
-      response mustBe Some(apiChannel → apiConfig)
+      response mustBe Some(apiChannel -> apiConfig)
       Mockito.verify(converter).apiConfigurationFromRawChannel(channel)
       Mockito.verify(converter).apiChannelFromRawChannel(channel)
     }

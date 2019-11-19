@@ -48,13 +48,13 @@ class InheritanceCalculatorTest extends PlaySpec {
       root.updatePaths()
 
       val inheritanceAction: InheritanceAction[String] = InheritanceAction[String](
-        forRoot = c ⇒ EXPECTED_ROOT,
-        forFallback = c ⇒ EXPECTED_FALLBACK,
-        forMatching = c ⇒ c.metadata.changedBy + "-new"
+        forRoot = c => EXPECTED_ROOT,
+        forFallback = c => EXPECTED_FALLBACK,
+        forMatching = c => c.metadata.changedBy + "-new"
       )
       val calculator: InheritanceCalculator = new InheritanceCalculator()
 
-      def inherit(channel: RawChannel): String = calculator.forChannel[String](channel, inheritanceAction, c ⇒ c.metadata.changedBy.contains("active"))
+      def inherit(channel: RawChannel): String = calculator.forChannel[String](channel, inheritanceAction, c => c.metadata.changedBy.contains("active"))
     }
 
     "return unique value for the root-channel. Use-Case: unique value for root (Frontpage)." in new SingleValueInheritanceScope {

@@ -17,7 +17,7 @@ pipeline {
             when { changeRequest() }
             steps {
                 ansiColor('xterm') {
-                    sh "./sbt clean +test"
+                    sh "./sbt clean test"
                 }
             }
         }
@@ -37,22 +37,11 @@ pipeline {
                 stage('Test') {
                     steps {
                         ansiColor('xterm') {
-                            sh './sbt clean coverage test'
+                            sh './sbt clean test'
                         }
                         junit '**/target/test-reports/*.xml'
                     }
                 }
-            }
-        }
-
-        stage('Coverage') {
-            when { allOf { anyOf { branch 'master'; branch 'ssm'}; expression { return !params.QUICK_DEPLOY } } }
-            steps {
-                ansiColor('xterm') {
-                    sh './sbt coverageReport'
-                    sh './sbt coverageAggregate'
-                }
-                step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
             }
         }
 
@@ -63,7 +52,7 @@ pipeline {
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'BINTRAY_API_KEY_CI_WELTN24', variable: 'BINTRAY_PASS']]) {
                     ansiColor('xterm') {
-                        sh './sbt +publish'
+                        sh './sbt publish'
                     }
                     slackSend channel: 'section-tool-2', message: "Successfully published a new WeltContentApiClient version: ${env.BUILD_URL}"
                 }

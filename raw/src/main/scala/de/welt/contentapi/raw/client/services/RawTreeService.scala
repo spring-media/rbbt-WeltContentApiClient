@@ -46,10 +46,10 @@ class RawTreeServiceImpl @Inject()(s3Client: S3Client,
     val maybeRemote = s3Client.getLastModified(bucket, file)
     val maybeLocal = Option(data.get()).map(_.lastMod).orElse(Some(Instant.now()))
     for {
-      remoteLastMod ← maybeRemote
-      localLastMod ← maybeLocal
+      remoteLastMod <- maybeRemote
+      localLastMod <- maybeLocal
       if remoteLastMod != localLastMod
-      remoteState ← getTree
+      remoteState <- getTree
     } yield {
       log.debug(s"Remote raw tree was changed. Replacing local ($localLastMod) with remote state ($remoteLastMod).")
       data.set(RawTreeRapper(remoteState.channel, remoteState.lastMod))
@@ -57,13 +57,13 @@ class RawTreeServiceImpl @Inject()(s3Client: S3Client,
   }
 
   protected def getTree: Option[RawTreeRapper] = {
-    s3Client.getWithLastModified(bucket, file).flatMap { remoteState ⇒
+    s3Client.getWithLastModified(bucket, file).flatMap { remoteState =>
       Json.parse(remoteState._1).validate[RawChannel](de.welt.contentapi.raw.models.RawReads.rawChannelReads) match {
-        case JsSuccess(parsedTree, _) ⇒
+        case JsSuccess(parsedTree, _) =>
           log.debug(s"Downloaded and parsed raw tree from $bucket/$file")
           parsedTree.updateParentRelations()
           Some(RawTreeRapper(parsedTree, remoteState._2))
-        case e: JsError ⇒
+        case e: JsError =>
           log.error(f"JsError parsing S3 file: '$bucket/$file'. " + JsError.toJson(e).toString())
           None
       }

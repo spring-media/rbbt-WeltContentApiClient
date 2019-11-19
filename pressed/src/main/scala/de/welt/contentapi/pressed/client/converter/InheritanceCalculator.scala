@@ -27,21 +27,21 @@ class InheritanceCalculator @Inject()() {
     * @param action     all possible actions for inheritance. See [[InheritanceAction]]
     * @param predicate  fn to check if a channel may inherit its data
     */
-  def forChannel[T](rawChannel: RawChannel, action: InheritanceAction[T], predicate: RawChannel ⇒ Boolean): T =
+  def forChannel[T](rawChannel: RawChannel, action: InheritanceAction[T], predicate: RawChannel => Boolean): T =
     rawChannel.parent match {
-      case None ⇒
+      case None =>
         // is root -> result for root
         action.forRoot.apply(rawChannel)
 
-      case Some(_) if predicate.apply(rawChannel) ⇒
+      case Some(_) if predicate.apply(rawChannel) =>
         // happy inheritance path
         action.forMatching.apply(rawChannel)
 
-      case Some(parent) if parent == rawChannel.root && !predicate.apply(rawChannel) ⇒
+      case Some(parent) if parent == rawChannel.root && !predicate.apply(rawChannel) =>
         // parent is root and value of current channel may not be inherited, so don't go up -> use fallback
         action.forFallback.apply(rawChannel)
 
-      case Some(parent) ⇒
+      case Some(parent) =>
         // enter recursion
         forChannel(parent, action, predicate)
     }
@@ -54,6 +54,6 @@ class InheritanceCalculator @Inject()() {
   * @param forFallback if no ancestor is found set this fallback value (apply fn). BEWARE: never inherit root channels values
   * @param forMatching this is the happy path for inheritance - a static value or an apply function can be provided
   */
-case class InheritanceAction[T](forRoot: RawChannel ⇒ T, forFallback: RawChannel ⇒ T, forMatching: RawChannel ⇒ T)
+case class InheritanceAction[T](forRoot: RawChannel => T, forFallback: RawChannel => T, forMatching: RawChannel => T)
 
 

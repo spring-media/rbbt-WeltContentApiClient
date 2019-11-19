@@ -168,8 +168,8 @@ case class ApiAsset(`type`: String,
   */
 case class ApiMetadata(validToDate: String, validFromDate: Option[String] = None, catchUp: Option[ApiMetadataCatchUp] = None) {
   def asMap: Map[String, String] = Map(
-    "validToDate" → validToDate
-  ) ++ validFromDate.map("validFromDate" → _)
+    "validToDate" -> validToDate
+  ) ++ validFromDate.map("validFromDate" -> _)
 }
 
 /**

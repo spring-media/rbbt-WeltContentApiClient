@@ -22,7 +22,7 @@ package object models {
     def isEmpty: Boolean = added.isEmpty && deleted.isEmpty && moved.isEmpty
 
     /** merge all the updates into this */
-    def merge(updates: Seq[ChannelUpdate]): ChannelUpdate = updates.foldLeft(this)((acc, update) ⇒ acc.merge(update))
+    def merge(updates: Seq[ChannelUpdate]): ChannelUpdate = updates.foldLeft(this)((acc, update) => acc.merge(update))
   }
 
   /**
@@ -30,8 +30,8 @@ package object models {
     *
     * { "limit": "" }
     */
-  val EmptyMapValues: ((String, String)) ⇒ Boolean = {
-    case (_, value) ⇒ containsTextContent(value)
-    case _ ⇒ true
+  val EmptyMapValues: ((String, String)) => Boolean = {
+    case (_, value) => containsTextContent(value)
+    case _ => true
   }
 }

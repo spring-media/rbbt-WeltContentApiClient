@@ -45,11 +45,11 @@ abstract class AbstractService[T](ws: WSClient,
     * `false` -> breaker will not open [this is a good exception, eg. 3xx and 4xx handled by custom-error-handler]
     * `true` -> breaker might open and prevent further requests for some time [this is bad]
     */
-  private val circuitBreakerFailureFn: Try[T] ⇒ Boolean = {
-    case Success(_) ⇒ false
-    case Failure(_: HttpRedirectException) ⇒ false
-    case Failure(_: HttpClientErrorException) ⇒ false
-    case _ ⇒ true
+  private val circuitBreakerFailureFn: Try[T] => Boolean = {
+    case Success(_) => false
+    case Failure(_: HttpRedirectException) => false
+    case Failure(_: HttpClientErrorException) => false
+    case _ => true
   }
   /**
     * report the breaker state as a gauge to metrics, only if breaker is enabled
@@ -101,7 +101,7 @@ abstract class AbstractService[T](ws: WSClient,
 
     val url: String = config.host + config.endpoint.format(urlArguments.map(stripWhiteSpaces).filter(_.nonEmpty): _*)
 
-    val nonEmptyParameters = parameters.map { case (k, v) ⇒ k -> v.trim }.filter(_._2.nonEmpty)
+    val nonEmptyParameters = parameters.map { case (k, v) => k -> v.trim }.filter(_._2.nonEmpty)
 
     var request: WSRequest = ws.url(url)
       .withQueryStringParameters(nonEmptyParameters: _*)
@@ -113,19 +113,19 @@ abstract class AbstractService[T](ws: WSClient,
       request = request.withRequestTimeout(config.circuitBreaker.callTimeout)
     }
 
-    body.foreach(b ⇒ {
+    body.foreach(b => {
       request = request.withBody(b)
     })
 
     request = config.credentials match {
-      case Some(BasicAuth(BasicUsername(user), BasicPassword(pass))) ⇒ request.withAuth(user, pass, WSAuthScheme.BASIC)
-      case Some(ApiKey(apiKey)) ⇒ request.addHttpHeaders(AbstractService.HeaderApiKey → apiKey)
-      case _ ⇒ request
+      case Some(BasicAuth(BasicUsername(user), BasicPassword(pass))) => request.withAuth(user, pass, WSAuthScheme.BASIC)
+      case Some(ApiKey(apiKey)) => request.addHttpHeaders(AbstractService.HeaderApiKey -> apiKey)
+      case _ => request
     }
 
     log.debug(s"HTTP ${config.method} to ${request.uri}")
 
-    lazy val block = request.execute(config.method).map { response ⇒
+    lazy val block = request.execute(config.method).map { response =>
       context.stop()
       processResponse(response, request.url)
     }
@@ -145,8 +145,8 @@ abstract class AbstractService[T](ws: WSClient,
     */
   private def forwardHeaders(maybeHeaders: RequestHeaders): RequestHeaders = {
     maybeHeaders.collect {
-      case tuple@("X-Unique-Id", _) ⇒ tuple
-      case tuple@("X-Amzn-Trace-Id", _) ⇒ tuple
+      case tuple@("X-Unique-Id", _) => tuple
+      case tuple@("X-Amzn-Trace-Id", _) => tuple
     }
   }
 
@@ -155,12 +155,12 @@ abstract class AbstractService[T](ws: WSClient,
   }
 
   private[contentapi] def processResponse(response: WSResponse, url: String): T = response.status match {
-    case Status.OK | Status.CREATED ⇒ processResult(response)
-    case status if (300 until 400).contains(status) ⇒ throw HttpRedirectException(url, response.statusText)
-    case Status.UNAUTHORIZED  ⇒ throw HttpServerErrorException(Status.NETWORK_AUTHENTICATION_REQUIRED, response.statusText, url)
-    case status if (400 until 500).contains(status) ⇒
+    case Status.OK | Status.CREATED => processResult(response)
+    case status if (300 until 400).contains(status) => throw HttpRedirectException(url, response.statusText)
+    case Status.UNAUTHORIZED  => throw HttpServerErrorException(Status.NETWORK_AUTHENTICATION_REQUIRED, response.statusText, url)
+    case status if (400 until 500).contains(status) =>
       throw HttpClientErrorException(status, response.statusText, url, response.header(HeaderNames.CACHE_CONTROL))
-    case status ⇒ throw HttpServerErrorException(status, response.statusText, url)
+    case status => throw HttpServerErrorException(status, response.statusText, url)
   }
 
   private def processResult(result: WSResponse): T = validate(result) match {
@@ -185,8 +185,8 @@ object AbstractService extends Loggable {
 
   object implicitConversions {
     implicit def jsResult2Try[S](js: JsResult[S]): Try[S] = js match {
-      case JsSuccess(value, _) ⇒ Success(value)
-      case JsError(err) ⇒ Failure(new IllegalArgumentException(s"Cannot parse JSON ${err.mkString(",")}"))
+      case JsSuccess(value, _) => Success(value)
+      case JsError(err) => Failure(new IllegalArgumentException(s"Cannot parse JSON ${err.mkString(",")}"))
     }
   }
 

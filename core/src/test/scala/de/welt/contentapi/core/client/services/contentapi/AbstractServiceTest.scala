@@ -10,7 +10,7 @@ import de.welt.contentapi.core.client.services.http.RequestHeaders
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.http.{HeaderNames, Status}
 import play.api.libs.json.JsString
@@ -29,7 +29,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
       import AbstractService.implicitConversions._
 
-      override val validate: WSResponse ⇒ Try[String] = response ⇒ response.json.result.validate[String]
+      override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
       override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
@@ -43,7 +43,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
       import AbstractService.implicitConversions._
 
-      override val validate: WSResponse ⇒ Try[String] = response ⇒ response.json.result.validate[String]
+      override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
       override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
@@ -99,7 +99,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
     "forward the api key and forwarded headers" in new TestScopeApiKey {
       private val service = new TestService()
-      implicit val headers: RequestHeaders = Seq("X-Unique-Id" → "qux")
+      implicit val headers: RequestHeaders = Seq("X-Unique-Id" -> "qux")
       service.execute(Seq("fake-id"), Seq("foo" -> "bar"))
       verify(mockRequest).addHttpHeaders(("x-api-key", "foo"))
       verify(mockRequest).addHttpHeaders(("X-Unique-Id", "qux"))
@@ -135,29 +135,29 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
     "not strip valid parameters" in new TestScopeBasicAuth {
       val parameters = ApiContentSearch(MainTypeParam(List("param1", "\u00A0param2\u00A0", "\u00A0"))).getAllParamsUnwrapped
       new TestService().execute(Seq("strange-whitespaces"), parameters)
-      verify(mockRequest).withQueryStringParameters("type" → Seq("param1", "param2").mkString(MainTypeParam().operator))
+      verify(mockRequest).withQueryStringParameters("type" -> Seq("param1", "param2").mkString(MainTypeParam().operator))
     }
 
     "strip empty elements from the query string" in new TestScopeBasicAuth {
       new TestService().execute(
         urlArguments = Seq("x"),
-        parameters = Seq("spaces" → " \n"))
+        parameters = Seq("spaces" -> " \n"))
       verify(mockRequest).withQueryStringParameters()
     }
 
     "trim whitespaces from parameters" in new TestScopeBasicAuth {
       new TestService().execute(
         urlArguments = Seq("x"),
-        parameters = Seq("trim" → "   value   "))
-      verify(mockRequest).withQueryStringParameters("trim" → "value")
+        parameters = Seq("trim" -> "   value   "))
+      verify(mockRequest).withQueryStringParameters("trim" -> "value")
     }
 
     // proxy qwant onward search request
     "allow whitespace in parameter value because request builder will escape it correctly" in new TestScopeBasicAuth {
       new TestService().execute(
         urlArguments = Seq("x"),
-        parameters = Seq("query" → "Angela Merkel"))
-      verify(mockRequest).withQueryStringParameters("query" → "Angela Merkel")
+        parameters = Seq("query" -> "Angela Merkel"))
+      verify(mockRequest).withQueryStringParameters("query" -> "Angela Merkel")
     }
 
     "body is passed to the request" in new TestScopeBasicAuth {
@@ -174,7 +174,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
         import AbstractService.implicitConversions._
 
-        override val validate: WSResponse ⇒ Try[String] = response ⇒ response.json.result.validate[String]
+        override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
         override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
@@ -210,7 +210,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       the[HttpRedirectException] thrownBy {
         Await.result(result, 10.second)
       } must matchPattern {
-        case _: HttpRedirectException ⇒
+        case _: HttpRedirectException =>
       }
     }
 
@@ -222,7 +222,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       the[HttpClientErrorException] thrownBy {
         Await.result(result, 10.second)
       } must matchPattern {
-        case HttpClientErrorException(NOT_FOUND, _, _, Some("cache-header-value")) ⇒
+        case HttpClientErrorException(NOT_FOUND, _, _, Some("cache-header-value")) =>
       }
     }
 
@@ -233,7 +233,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       the[HttpServerErrorException] thrownBy {
         Await.result(result, 10.second)
       } must matchPattern {
-        case HttpServerErrorException(GATEWAY_TIMEOUT, _, _) ⇒
+        case HttpServerErrorException(GATEWAY_TIMEOUT, _, _) =>
       }
     }
 

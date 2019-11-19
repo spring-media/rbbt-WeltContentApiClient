@@ -8,7 +8,7 @@ import de.welt.contentapi.core.client.services.configuration.{ApiConfiguration, 
 import de.welt.contentapi.core.models.ApiContent
 import de.welt.contentapi.pressed.models.ApiPressedContent
 import org.mockito.Mockito
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
 class AuthorServiceTest extends PlaySpec with MockitoSugar {

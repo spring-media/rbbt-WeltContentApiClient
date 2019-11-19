@@ -96,7 +96,7 @@ class Raw2ApiConfigurationTests extends PlaySpec {
   "RawChannel to ApiChannel" must {
 
     "convert `section`" in new TestScopeConfiguration {
-      apiChannel.section.map(s ⇒ s.label ++ s.href) mustBe Some(List(rawChannel.id.label, rawChannel.id.path))
+      apiChannel.section.map(s => s.label ++ s.href) mustBe Some(List(rawChannel.id.label, rawChannel.id.path))
     }
 
     "calculate `master`" in new TestScopeConfiguration {
@@ -160,14 +160,14 @@ class Raw2ApiConfigurationTests extends PlaySpec {
     "convert `references`" in new TestScopeConfiguration {
       apiHeaderConfiguration
         .unwrappedSectionReferences
-        .flatMap(r ⇒ r.label ++ r.href) must contain theSameElementsAs rawChannelHeader
+        .flatMap(r => r.label ++ r.href) must contain theSameElementsAs rawChannelHeader
         .unwrappedSectionReferences
-        .flatMap(r ⇒ r.label ++ r.path)
+        .flatMap(r => r.label ++ r.path)
     }
 
     "convert `headerReference`" in new TestScopeConfiguration {
-      private val apiHeaderReference = apiHeaderConfiguration.headerReference.map(r ⇒ (r.label, r.href))
-      private val rawHeaderReference = rawChannelHeader.headerReference.map(r ⇒ (r.label, r.path))
+      private val apiHeaderReference = apiHeaderConfiguration.headerReference.map(r => (r.label, r.href))
+      private val rawHeaderReference = rawChannelHeader.headerReference.map(r => (r.label, r.path))
 
       apiHeaderReference mustEqual rawHeaderReference
     }
@@ -183,19 +183,19 @@ class Raw2ApiConfigurationTests extends PlaySpec {
     "convert `sub_navigation`" in new TestScopeConfiguration {
       apiSiteBuildingConfiguration
         .unwrappedSubNavigation
-        .flatMap(r ⇒ r.label ++ r.href) must contain theSameElementsAs rawChannelSiteBuilding
+        .flatMap(r => r.label ++ r.href) must contain theSameElementsAs rawChannelSiteBuilding
         .unwrappedSubNavigation
-        .flatMap(r ⇒ r.label ++ r.path)
+        .flatMap(r => r.label ++ r.path)
     }
 
     "convert `elements`" in new TestScopeConfiguration {
       apiSiteBuildingConfiguration
         .unwrappedElements
         .flatMap(
-          r ⇒ r.`type` + r.unwrappedAssets.flatMap(r2 ⇒ r2.`type`) + r.unwrappedAssets.flatMap(r2 ⇒ r2.fields)
+          r => r.`type` + r.unwrappedAssets.flatMap(r2 => r2.`type`) + r.unwrappedAssets.flatMap(r2 => r2.fields)
         ) must contain theSameElementsAs rawChannelSiteBuilding
         .unwrappedElements
-        .flatMap(r ⇒ r.`type` + r.unwrappedAssets.flatMap(r2 ⇒ r2.`type`) + r.unwrappedAssets.flatMap(r2 ⇒ r2.fields))
+        .flatMap(r => r.`type` + r.unwrappedAssets.flatMap(r2 => r2.`type`) + r.unwrappedAssets.flatMap(r2 => r2.fields))
     }
   }
 
@@ -218,8 +218,8 @@ class Raw2ApiConfigurationTests extends PlaySpec {
     }
 
     "convert `link`" in new TestScopeConfiguration {
-      private val apiSponsoringLink = apiSponsoringConfiguration.link.map(r ⇒ (r.label, r.href))
-      private val rawSponsoringLink = rawChannelSponsoring.link.map(r ⇒ (r.label, r.path))
+      private val apiSponsoringLink = apiSponsoringConfiguration.link.map(r => (r.label, r.href))
+      private val rawSponsoringLink = rawChannelSponsoring.link.map(r => (r.label, r.path))
 
       apiSponsoringLink mustEqual rawSponsoringLink
     }

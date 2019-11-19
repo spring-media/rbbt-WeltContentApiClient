@@ -26,16 +26,16 @@ class SdpSectionDataServiceImpl @Inject()(s3: S3Client, cache: SyncCacheApi, con
   override def getSectionData: SdpSectionData = cache.getOrElseUpdate("s3-section-data", 15.minutes) {
 
     val data = for {
-      b ← configuration.getOptional[String]("welt.aws.s3.sdp.bucket")
-      f ← configuration.getOptional[String]("welt.aws.s3.sdp.file")
-      response ← s3.get(b, f)
+      b <- configuration.getOptional[String]("welt.aws.s3.sdp.bucket")
+      f <- configuration.getOptional[String]("welt.aws.s3.sdp.file")
+      response <- s3.get(b, f)
     } yield {
       val validationResult = Json.parse(response)
       validationResult.validate[SdpSectionData] match {
-        case JsSuccess(value, _) ⇒
+        case JsSuccess(value, _) =>
           log.debug("S3 Section Data successfully loaded.")
           value
-        case err@JsError(e) ⇒
+        case err@JsError(e) =>
           log.error("S3 Section Data could not be parsed.", new scala.IllegalArgumentException(err.errors.head.toString))
           SdpSectionData("/", "No Data", None, Seq.empty, -1)
       }

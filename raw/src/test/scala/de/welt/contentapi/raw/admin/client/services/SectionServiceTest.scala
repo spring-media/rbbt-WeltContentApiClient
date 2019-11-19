@@ -6,7 +6,7 @@ import de.welt.contentapi.core.client.services.configuration.ApiConfiguration
 import de.welt.contentapi.raw.admin.client.models.SdpSectionData
 import org.mockito.Mockito.when
 import org.mockito.{ArgumentMatchers, Mockito}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
 class SectionServiceTest extends PlaySpec with MockitoSugar {

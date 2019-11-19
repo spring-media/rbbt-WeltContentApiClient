@@ -83,20 +83,20 @@ class AuthorServiceImpl @Inject()(s3Client: S3Client,
     val maybeLastMod = s3Client.getLastModified(Bucket, File)
     log.info(s"Starting AuthorService.fetchAuthorsFromS3(), lastmod= $maybeLastMod")
     for {
-      remoteLastModified ← maybeLastMod
+      remoteLastModified <- maybeLastMod
       if lastModified != remoteLastModified
-      authorsAsText ← s3Client.get(Bucket, File)
+      authorsAsText <- s3Client.get(Bucket, File)
     } yield {
       val maybeAuthors: Option[List[ApiContent]] = Json.parse(authorsAsText).validate[List[ApiContent]] match {
-        case JsSuccess(v, _) ⇒ Some(v)
-        case err@JsError(_) ⇒
+        case JsSuccess(v, _) => Some(v)
+        case err@JsError(_) =>
           log.error("Could not parse authors from JSON" + err.toString)
           None
       }
 
-      maybeAuthors.foreach { authors ⇒
+      maybeAuthors.foreach { authors =>
 
-        _allAuthors = authors.map(author ⇒ pcs.convert(author))
+        _allAuthors = authors.map(author => pcs.convert(author))
         lastModified = remoteLastModified
 
         log.info(s"Finished AuthorService.fetchAuthorsFromS3(). Found ${authors.size} authors. LastMod $lastModified -> $remoteLastModified")

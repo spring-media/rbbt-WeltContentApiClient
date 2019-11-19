@@ -10,9 +10,9 @@ import javax.inject.Inject
 @Singleton
 class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) {
   private val pathForAdTagAction: InheritanceAction[String] = InheritanceAction[String](
-    forRoot = _ ⇒ "home", // root has a unique adTag
-    forFallback = _ ⇒ "sonstiges", // fallback value for First-Level-Sections with no own adTag
-    forMatching = c ⇒ trimPathForAdTag(c.id.path)
+    forRoot = _ => "home", // root has a unique adTag
+    forFallback = _ => "sonstiges", // fallback value for First-Level-Sections with no own adTag
+    forMatching = c => trimPathForAdTag(c.id.path)
   )
 
   /**
@@ -37,7 +37,7 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
     )
   }
 
-  private[converter] def getBreadcrumb(raw: RawChannel): Seq[ApiReference] = raw.getBreadcrumb.map(b ⇒ ApiReference(Some(b.id.label), Some(b.id.path)))
+  private[converter] def getBreadcrumb(raw: RawChannel): Seq[ApiReference] = raw.getBreadcrumb.map(b => ApiReference(Some(b.id.label), Some(b.id.path)))
 
   /**
     * Converter method that takes a rawChannel and returns an ApiConfiguration from its data or ancestors
@@ -56,11 +56,11 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
 
   //todo: return Option[] (no hardcoded Some())
   private[converter] def calculatePathForVideoAdTag(rawChannel: RawChannel): String =
-    inheritanceCalculator.forChannel[String](rawChannel, pathForAdTagAction, c ⇒ c.config.commercial.definesVideoAdTag)
+    inheritanceCalculator.forChannel[String](rawChannel, pathForAdTagAction, c => c.config.commercial.definesVideoAdTag)
 
   //todo: return Option[] (no hardcoded Some())
   private[converter] def calculatePathForAdTag(rawChannel: RawChannel): String =
-    inheritanceCalculator.forChannel[String](rawChannel, pathForAdTagAction, c ⇒ c.config.commercial.definesAdTag)
+    inheritanceCalculator.forChannel[String](rawChannel, pathForAdTagAction, c => c.config.commercial.definesAdTag)
 
   /**
     * Primarily converts the RawChannelHeader from the current RawChannel if its RawChannelHeader is nonEmpty
@@ -70,14 +70,14 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
   private[converter] def calculateHeader(rawChannel: RawChannel): Option[ApiHeaderConfiguration] =
     rawChannel.config.header.find(_.nonEmpty) // is a valid header defined?
       .orElse(calculateMasterChannel(rawChannel).flatMap(_.config.header)) // or else find a master to inherit its header
-      .map { result ⇒
+      .map { result =>
       ApiHeaderConfiguration(
         label = result.label,
         logo = result.logo,
-        headerReference = result.headerReference.map(ref ⇒ ApiReference(ref.label, ref.path)),
+        headerReference = result.headerReference.map(ref => ApiReference(ref.label, ref.path)),
         slogan = result.slogan,
-        sloganReference = result.sloganReference.map(ref ⇒ ApiReference(ref.label, ref.path)),
-        sectionReferences = result.sectionReferences.map(refs ⇒ refs.map(ref ⇒ ApiReference(ref.label, ref.path))),
+        sloganReference = result.sloganReference.map(ref => ApiReference(ref.label, ref.path)),
+        sectionReferences = result.sectionReferences.map(refs => refs.map(ref => ApiReference(ref.label, ref.path))),
         hidden = Option(result.hidden)
       )
     }
@@ -97,18 +97,18 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
       maybeSitebuilding = Some(mergeSitebuildings(channelSitebuilding, masterSitebuilding))
     }
       maybeSitebuilding
-      .map { result ⇒
+      .map { result =>
         ApiSiteBuildingConfiguration(
           fields = result.nonEmptyFields,
-          sub_navigation = result.sub_navigation.map(refs ⇒
-            refs.map(ref ⇒ ApiReference(ref.label, ref.path))
+          sub_navigation = result.sub_navigation.map(refs =>
+            refs.map(ref => ApiReference(ref.label, ref.path))
           ),
           elements = result.elements.map(
-            refs ⇒ refs.map(ref ⇒
+            refs => refs.map(ref =>
               ApiElement(
                 id = ref.id,
                 `type` = ref.`type`,
-                assets = ref.assets.map(refs2 ⇒ refs2.map(ref2 ⇒ ApiAsset(`type` = ref2.`type`, fields = ref2.fields)))
+                assets = ref.assets.map(refs2 => refs2.map(ref2 => ApiAsset(`type` = ref2.`type`, fields = ref2.fields)))
               )
             )
           )
@@ -156,7 +156,7 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
     * e.g. there is a link to /icon/ with Label Icon on /icon/uhren/
     */
   private[converter] def calculateMasterReference(rawChannel: RawChannel): Option[ApiReference] = {
-    calculateMasterChannel(rawChannel).flatMap { master ⇒
+    calculateMasterChannel(rawChannel).flatMap { master =>
       Some(ApiReference(label = Some(master.id.label), href = Some(master.id.path)))
     }
   }
@@ -178,32 +178,32 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
     */
   private[converter] def calculateMasterChannel(rawChannel: RawChannel): Option[RawChannel] = {
     val masterChannelInheritanceAction: InheritanceAction[Option[RawChannel]] = InheritanceAction[Option[RawChannel]](
-      forRoot = ch ⇒ Some(ch.root),
-      forFallback = _ ⇒ None,
-      forMatching = masterChannel ⇒ Some(masterChannel)
+      forRoot = ch => Some(ch.root),
+      forFallback = _ => None,
+      forMatching = masterChannel => Some(masterChannel)
     )
-    val predicate: RawChannel ⇒ Boolean = c ⇒ c.parent.contains(c.root) || c.config.master
+    val predicate: RawChannel => Boolean = c => c.parent.contains(c.root) || c.config.master
     inheritanceCalculator.forChannel[Option[RawChannel]](rawChannel, masterChannelInheritanceAction, predicate)
   }
 
 
   private[converter] def calculateBrand(rawChannel: RawChannel): Boolean = {
     val brandInheritanceAction: InheritanceAction[Boolean] = InheritanceAction[Boolean](
-      forRoot = _ ⇒ false, // root is never a brand
-      forFallback = _ ⇒ false, // last channel before root with brand == false
-      forMatching = _ ⇒ true // ignore `c` -- it's always `true`
+      forRoot = _ => false, // root is never a brand
+      forFallback = _ => false, // last channel before root with brand == false
+      forMatching = _ => true // ignore `c` -- it's always `true`
     )
-    inheritanceCalculator.forChannel[Boolean](rawChannel, brandInheritanceAction, c ⇒ c.config.brand)
+    inheritanceCalculator.forChannel[Boolean](rawChannel, brandInheritanceAction, c => c.config.brand)
   }
 
   private[converter] def calculateTheme(rawChannel: RawChannel): Option[ApiThemeConfiguration] = {
-    val maybeThemeMapping: RawChannel ⇒ Option[ApiThemeConfiguration] = c ⇒ c.config.theme.map(t ⇒ ApiThemeConfiguration(t.name, t.fields))
+    val maybeThemeMapping: RawChannel => Option[ApiThemeConfiguration] = c => c.config.theme.map(t => ApiThemeConfiguration(t.name, t.fields))
     val themeInheritanceAction: InheritanceAction[Option[ApiThemeConfiguration]] = InheritanceAction[Option[ApiThemeConfiguration]](
-      forRoot = _ ⇒ None, // The Frontpage has never a theme
+      forRoot = _ => None, // The Frontpage has never a theme
       forFallback = maybeThemeMapping,
       forMatching = maybeThemeMapping
     )
-    inheritanceCalculator.forChannel[Option[ApiThemeConfiguration]](rawChannel, themeInheritanceAction, c ⇒ c.config.theme.exists(_.name.isDefined))
+    inheritanceCalculator.forChannel[Option[ApiThemeConfiguration]](rawChannel, themeInheritanceAction, c => c.config.theme.exists(_.name.isDefined))
   }
 
   private[converter] def apiMetaConfigurationFromRawChannel(rawChannel: RawChannel): Option[ApiMetaConfiguration] = {
@@ -243,13 +243,13 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
       logo = rawChannel.config.sponsoring.logo,
       slogan = rawChannel.config.sponsoring.slogan,
       hidden = Some(rawChannel.config.sponsoring.hidden),
-      link = rawChannel.config.sponsoring.link.map(ref ⇒ ApiReference(ref.label, ref.path)),
+      link = rawChannel.config.sponsoring.link.map(ref => ApiReference(ref.label, ref.path)),
       brandstation = rawChannel.config.sponsoring.brandstation
     )
   }
 
   private[converter] def apiThemeFromRawChannel(rawChannel: RawChannel): Option[ApiThemeConfiguration] =
-    rawChannel.config.theme.map(t ⇒ ApiThemeConfiguration(t.name, t.fields))
+    rawChannel.config.theme.map(t => ApiThemeConfiguration(t.name, t.fields))
 
   //todo: return Option[ApiCommercial3rdPartyConfiguration] (no hardcoded Some())
   private[converter] def thirdPartyCommercialFromRawChannelCommercial(rawChannelCommercial: RawChannelCommercial) =

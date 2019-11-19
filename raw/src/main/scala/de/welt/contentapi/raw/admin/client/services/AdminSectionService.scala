@@ -60,7 +60,7 @@ class AdminSectionServiceImpl @Inject()(s3: S3Client,
     def mergeAndSave(updates: RawChannel): Option[ChannelUpdate] = {
       val maybeRoot = root
       val mergeResult = maybeRoot.map(root => ChannelTools.merge(root, updates))
-      maybeRoot.foreach(root ⇒ saveChannel(root))
+      maybeRoot.foreach(root => saveChannel(root))
       mergeResult
     }
 
@@ -71,7 +71,7 @@ class AdminSectionServiceImpl @Inject()(s3: S3Client,
     mergeAndSave(updates)
     val mergeUpdate = mergeAndSave(updates)
 
-    mergeUpdate.foreach(update ⇒ log.info(s"[Sync] Done syncing with legacy, found the following changes: $update"))
+    mergeUpdate.foreach(update => log.info(s"[Sync] Done syncing with legacy, found the following changes: $update"))
     log.info(s"[Sync] took ${stopwatch.stop.toString}")
   }
 
@@ -96,7 +96,7 @@ class AdminSectionServiceImpl @Inject()(s3: S3Client,
   }
 
   def save = {
-    root.foreach(r ⇒ saveChannel(r))
+    root.foreach(r => saveChannel(r))
     log.debug("Invalidating cache.")
     update()
   }
@@ -112,10 +112,10 @@ object ChannelTools extends Loggable {
     } else {
 
       val bothPresentIds = current.children.map(_.id).intersect(update.children.map(_.id))
-      val updatesFromChildren = bothPresentIds.flatMap { id ⇒
+      val updatesFromChildren = bothPresentIds.flatMap { id =>
         val tupleOfMatchingChannels = current.children.find(_.id == id).zip(update.children.find(_.id == id))
 
-        tupleOfMatchingChannels.map { tuple ⇒
+        tupleOfMatchingChannels.map { tuple =>
           diff(tuple._1, tuple._2)
         }
       }
@@ -127,11 +127,11 @@ object ChannelTools extends Loggable {
       val moved = {
 
         // if we can find it in our tree, it hasn't been added but only moved
-        val notAddedButMoved = addedByOther.flatMap { e ⇒ current.root.findByEscenicId(e.id.escenicId) }
+        val notAddedButMoved = addedByOther.flatMap { e => current.root.findByEscenicId(e.id.escenicId) }
 
         lazy val otherRoot = update.root
         // if we can find the deleted elem, it has been moved
-        val notDeletedButMoved = deletedByOther.filter { elem ⇒ otherRoot.findByEscenicId(elem.id.escenicId).isDefined }
+        val notDeletedButMoved = deletedByOther.filter { elem => otherRoot.findByEscenicId(elem.id.escenicId).isDefined }
 
         notAddedButMoved ++ notDeletedButMoved
       }
@@ -151,19 +151,19 @@ object ChannelTools extends Loggable {
 
     val channelUpdate = diff(current, other)
 
-    channelUpdate.deleted.foreach { deletion ⇒
-      deletion.parent.foreach { parent ⇒
+    channelUpdate.deleted.foreach { deletion =>
+      deletion.parent.foreach { parent =>
         parent.children = parent.children.filterNot(_ == deletion)
       }
     }
 
-    channelUpdate.added.foreach { addition ⇒
+    channelUpdate.added.foreach { addition =>
       current.children = current.children :+ addition
     }
 
-    channelUpdate.moved.foreach { moved ⇒
+    channelUpdate.moved.foreach { moved =>
       // remove from current parent
-      moved.parent.foreach { parent ⇒
+      moved.parent.foreach { parent =>
         parent.children = parent.children.filterNot(_ == moved)
       }
       // add to new parent
@@ -171,8 +171,8 @@ object ChannelTools extends Loggable {
         .flatMap(_.parent)
         .map(_.id.escenicId)
 
-      newParentId.foreach { parentId ⇒
-        current.root.findByEscenicId(parentId).foreach { newParent ⇒
+      newParentId.foreach { parentId =>
+        current.root.findByEscenicId(parentId).foreach { newParent =>
           newParent.children = newParent.children :+ moved
         }
       }
@@ -192,8 +192,8 @@ object ChannelTools extends Loggable {
     * @param legacyRoot the source object where to read updates from
     */
   def updateData(current: RawChannel, legacyRoot: RawChannel): Unit = {
-    legacyRoot.findByEscenicId(current.id.escenicId).foreach(other ⇒ current.updateMasterData(other))
-    current.children.foreach(child ⇒ updateData(child, legacyRoot))
+    legacyRoot.findByEscenicId(current.id.escenicId).foreach(other => current.updateMasterData(other))
+    current.children.foreach(child => updateData(child, legacyRoot))
   }
 
 

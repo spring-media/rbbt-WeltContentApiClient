@@ -36,7 +36,7 @@ extends AbstractService[ApiBatchResult](ws, metrics, ServiceConfiguration("conte
   import de.welt.contentapi.core.models.ApiReads._
   import AbstractService.implicitConversions._
 
-  override val validate: WSResponse ⇒ Try[ApiBatchResult] = _.json.result.validate[ApiBatchResponse].map(_.response)
+  override val validate: WSResponse => Try[ApiBatchResult] = _.json.result.validate[ApiBatchResponse].map(_.response)
 
   override def getIds(ids: Seq[String])(implicit requestHeaders: RequestHeaders = Seq.empty): Future[ApiBatchResult] = {
     if (ids.isEmpty) {

@@ -11,7 +11,7 @@ class RawChannelReadsTest extends PlaySpec {
 
     trait Fixture {
       val moduleValue = "module-for-raw-channel-reads"
-      val overrides = Some(Map("section" → "/foo/"))
+      val overrides = Some(Map("section" -> "/foo/"))
       val index = 1
       val originalTrackingName = Some("tracking-name")
       val originalLink = Some(RawSectionReference(path = Some("https://www.dick-butt.org")))
@@ -28,14 +28,14 @@ class RawChannelReadsTest extends PlaySpec {
       val rawStageFromJson: RawChannelStageCustomModule = Json.fromJson(stageAsJson).asOpt.orNull
 
       val rawChannelAsJsObject: JsObject = JsObject(Map(
-        "id" → JsObject(Map(
-          "path" → JsString("le-path"),
-          "label" → JsString("id"),
-          "escenicId" → JsNumber(1337)
+        "id" -> JsObject(Map(
+          "path" -> JsString("le-path"),
+          "label" -> JsString("id"),
+          "escenicId" -> JsNumber(1337)
         )),
-        "config" → Json.toJson(RawChannelConfiguration())(RawWrites.rawChannelConfigurationWrites),
-        "metadata" → Json.toJson(RawMetadata())(RawWrites.rawMetadataWrites),
-        "stageConfiguration" → Json.toJson(RawChannelStageConfiguration(
+        "config" -> Json.toJson(RawChannelConfiguration())(RawWrites.rawChannelConfigurationWrites),
+        "metadata" -> Json.toJson(RawMetadata())(RawWrites.rawMetadataWrites),
+        "stageConfiguration" -> Json.toJson(RawChannelStageConfiguration(
           stages = Some(Seq(rawStageFromJson))
         ))(RawWrites.rawChannelStageConfigurationWrites)
       ))

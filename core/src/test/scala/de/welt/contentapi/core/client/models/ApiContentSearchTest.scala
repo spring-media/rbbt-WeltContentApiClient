@@ -51,7 +51,7 @@ class ApiContentSearchTest extends PlaySpec {
         ("pageSize", "10"),
         ("page", "1"),
         ("id", "-157673104,-157078453"),
-        ("themepage" → "109266998")
+        ("themepage" -> "109266998")
       )
 
       query.getAllParamsUnwrapped mustBe expectedListOfParams
@@ -68,22 +68,22 @@ class ApiContentSearchTest extends PlaySpec {
 
     "main type is ','ed" in {
       val mainTypeParam = ApiContentSearch(MainTypeParam(List("main1", "main2"))).getAllParamsUnwrapped
-      mainTypeParam must contain("type" → "main1,main2")
+      mainTypeParam must contain("type" -> "main1,main2")
     }
 
     "home section is '|'ed" in {
       val homeParam = ApiContentSearch(homeSection = HomeSectionParam(List("home1", "home2"))).getAllParamsUnwrapped
-      homeParam must contain("sectionHome" → "home1|home2")
+      homeParam must contain("sectionHome" -> "home1|home2")
     }
 
     "date types are handled correctly" in {
       val dateParam = ApiContentSearch(fromDate = FromDateParam(Instant.ofEpochMilli(0))).getAllParamsUnwrapped
-      dateParam must contain("fromDate" → "1970-01-01T00:00:00Z")
+      dateParam must contain("fromDate" -> "1970-01-01T00:00:00Z")
     }
 
     "tags are OR'ed with the '|' symbol" in {
       val allParams = ApiContentSearch(tag = TagParam(List(tag1, tag2))).getAllParamsUnwrapped
-      allParams must contain("tag" → s"$tag1|$tag2")
+      allParams must contain("tag" -> s"$tag1|$tag2")
     }
   }
 }

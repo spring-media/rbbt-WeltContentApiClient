@@ -107,7 +107,7 @@ class RawInheritanceTest extends PlaySpec {
 
     "sets the user and lastMod date after inheritance actions" in new TestScope {
       private val now = 55555555L
-      root.batchInheritGenericToAllChildren((rawChannel: RawChannel) ⇒ Logger.debug(s"${rawChannel.id.label}"), "user", now)
+      root.batchInheritGenericToAllChildren((rawChannel: RawChannel) => Logger.debug(s"${rawChannel.id.label}"), "user", now)
       root.metadata.changedBy mustNot be("user")
       sport.metadata.changedBy mustBe "user"
       fussball.metadata.changedBy mustBe "user"

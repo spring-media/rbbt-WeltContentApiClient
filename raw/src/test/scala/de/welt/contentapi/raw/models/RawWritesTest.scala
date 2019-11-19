@@ -43,9 +43,9 @@ class RawWritesTest extends PlaySpec {
           RawSectionReference(label = Some("ref-label"), path = Some("ref-path"))
         )),
         overrides = Some(Map(
-          "sectionPath" → "/mediathek/magazin/",
-          "label" → "MEDIATHEK",
-          "limit" → ""
+          "sectionPath" -> "/mediathek/magazin/",
+          "label" -> "MEDIATHEK",
+          "limit" -> ""
         ))
       )
 

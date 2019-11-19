@@ -7,19 +7,19 @@ import de.welt.contentapi.core.client.services.configuration.ApiConfiguration
 import de.welt.contentapi.utils.Loggable
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 class ParameterStore(region: Region) extends Loggable {
 
-  private lazy val ssm = ApiConfiguration.aws.credentials.map { credentials ⇒
+  private lazy val ssm = ApiConfiguration.aws.credentials.map { credentials =>
     AWSSimpleSystemsManagementClientBuilder.standard()
       .withCredentials(credentials)
       .withRegion(region.getName)
       .build()
   } match {
-    case Success(value) ⇒ value
-    case Failure(th) ⇒
+    case Success(value) => value
+    case Failure(th) =>
       log.error("Could not initialize AWS SSM Client.", th)
       throw th
   }
@@ -42,13 +42,13 @@ class ParameterStore(region: Region) extends Loggable {
 
       val reqWithToken = nextToken.map(req.withNextToken).getOrElse(req)
       val result = ssm.getParametersByPath(reqWithToken)
-      val resultMap = acc ++ result.getParameters.asScala.map { param ⇒
-        param.getName → param.getValue
+      val resultMap = acc ++ result.getParameters.asScala.map { param =>
+        param.getName -> param.getValue
       }
 
       Option(result.getNextToken) match {
-        case Some(next) ⇒ pagination(resultMap, Some(next))
-        case None ⇒ resultMap
+        case Some(next) => pagination(resultMap, Some(next))
+        case None => resultMap
       }
     }
 

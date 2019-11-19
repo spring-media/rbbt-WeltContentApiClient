@@ -33,7 +33,7 @@ class DiggerServiceImpl @Inject()(ws: WSClient,
 
   import AbstractService.implicitConversions._
 
-  override val validate: WSResponse ⇒ Try[ApiPressedSectionResponse] = response ⇒ response.json.result.validate[ApiPressedSectionResponse]
+  override val validate: WSResponse => Try[ApiPressedSectionResponse] = response => response.json.result.validate[ApiPressedSectionResponse]
 
   override def findByPath(path: String)
                                            (implicit requestHeaders: RequestHeaders = Seq.empty): Future[ApiPressedSectionResponse] = {

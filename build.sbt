@@ -7,8 +7,9 @@ import scala.util.Properties
 val buildNumber = Properties.envOrNone("BUILD_NUMBER")
 val isSnapshot = buildNumber.isEmpty
 val PlayVersion = "2.7.3"
-val AWSVersion = "1.11.631"
-val actualVersion: String = s"6.0.${buildNumber.getOrElse("0-local")}"
+val AWSVersion = "1.11.677"
+val MockitoVersion = "3.1.0"
+val actualVersion: String = s"7.0.${buildNumber.getOrElse("0-local")}"
 
 val javaVersion: Int = sys.props("java.specification.version") match {
   case "1.8" => 8
@@ -20,20 +21,19 @@ val javaVersionError: String = {
   val error = s"* Java 11 is required for this project. Found $javaVersion. *"
   s"""
      |${"*" * error.length}
-     |${error}
+     |$error
      |${"*" * error.length}""".stripMargin
 }
 initialize := {
   val _ = initialize.value
-  assert(Set(11).contains(javaVersion), javaVersionError)
+  assert(Set(11, 13).contains(javaVersion), javaVersionError)
 }
 
 def withTests(project: Project) = project % "test->test;compile->compile"
 
 val frontendCompilationSettings = Seq(
   organization := "de.welt",
-  scalaVersion := "2.12.10",
-  crossScalaVersions := Seq(scalaVersion.value, "2.13.1"),
+  scalaVersion := "2.13.1",
   version in ThisBuild := s"${actualVersion}_$PlayVersion${if (isSnapshot) "-SNAPSHOT" else ""}",
 
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
@@ -49,7 +49,9 @@ val frontendCompilationSettings = Seq(
   javaOptions in Test += "-Dconfig.resource=application.test.conf",
   baseDirectory in Test := file("."),
   // disable scaladoc
-  sources in(Compile, doc) := Seq()
+  sources in(Compile, doc) := Seq(),
+  scalacOptions += "-deprecation"
+
 )
 
 val frontendDependencyManagementSettings = Seq(
@@ -60,10 +62,9 @@ val frontendDependencyManagementSettings = Seq(
   // https://www.typesafe.com/blog/improved-dependency-management-with-sbt-0137
   updateOptions := updateOptions.value.withCachedResolution(true)
 )
-val vMockito = "3.0.0"
 val coreDependencySettings = Seq(
   libraryDependencies ++= Seq(
-    "org.mockito" % "mockito-core" % vMockito % Test,
+    "org.mockito" % "mockito-core" % MockitoVersion % Test,
     "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
   )
 )
@@ -73,7 +74,7 @@ val clientDependencySettings = Seq(
     "com.typesafe.play" %% "play-guice" % PlayVersion % Provided,
     "com.typesafe.play" %% "play-ws" % PlayVersion % Provided,
     "com.typesafe.play" %% "play-cache" % PlayVersion % Provided,
-    "com.typesafe" % "config" % "1.3.4" % Provided,
+    "com.typesafe" % "config" % "1.4.0" % Provided,
 
     "ch.qos.logback" % "logback-classic" % "1.2.3" % Provided,
 
@@ -84,7 +85,7 @@ val clientDependencySettings = Seq(
     "com.kenshoo" %% "metrics-play" % "2.7.3_0.8.1",
 
     "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
-    "org.mockito" % "mockito-core" % vMockito % Test
+    "org.mockito" % "mockito-core" % MockitoVersion % Test
   )
 )
 
@@ -172,7 +173,9 @@ val main = Project("root", base = file("."))
     publish := {},
     bintrayUnpublish := {}
   )
-  .aggregate(core,
+  .aggregate(
+    core,
     coreTest,
     raw,
-    pressed)
+    pressed
+  )

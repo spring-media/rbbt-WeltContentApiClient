@@ -61,9 +61,9 @@ class PressedContentServiceImpl @Inject()(ciggerService: CiggerService,
   override def convert(apiContent: ApiContent, maybeRelatedContent: Option[Seq[ApiContent]] = None): ApiPressedContent = {
     val timer: Context = metrics.defaultRegistry.timer("PressedContentService.convert").time()
     val maybeRelatedPressedContent: Option[Seq[ApiPressedContent]] = maybeRelatedContent
-      .map(related ⇒ related.map(pressSingleApiContent))
+      .map(related => related.map(pressSingleApiContent))
 
-    val content: ApiPressedContent = findRawChannel(apiContent).map { rawChannel ⇒
+    val content: ApiPressedContent = findRawChannel(apiContent).map { rawChannel =>
       val apiChannel: ApiChannel = converter.apiChannelFromRawChannel(rawChannel)
       val apiConfiguration: ApiConfiguration = converter.apiConfigurationFromRawChannel(rawChannel)
       ApiPressedContent(
@@ -91,7 +91,7 @@ class PressedContentServiceImpl @Inject()(ciggerService: CiggerService,
     )
 
   private def findRawChannel(apiContent: ApiContent): Option[RawChannel] = rawTreeService.root
-    .flatMap { rawTree ⇒
+    .flatMap { rawTree =>
       apiContent
         .sections
         .flatMap(_.home)

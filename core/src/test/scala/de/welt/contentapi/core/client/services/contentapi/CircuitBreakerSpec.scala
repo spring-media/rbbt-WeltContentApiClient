@@ -8,7 +8,7 @@ import de.welt.contentapi.core.client.services.exceptions.{HttpClientErrorExcept
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.concurrent.Eventually
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.JsString
@@ -31,7 +31,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
 
           import AbstractService.implicitConversions._
 
-          override val validate: WSResponse ⇒ Try[String] = response ⇒ response.json.result.validate[String]
+          override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
           override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
@@ -45,7 +45,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
         when(responseMock.json).thenReturn(JsString(""))
 
         val service = new TestService()
-        for {_ ← 1 to 100} {
+        for {_ <- 1 to 100} {
           Await.result(service.execute(), 1.second)
         }
         verify(mockRequest, times(100)).execute(anyString())
@@ -160,7 +160,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
 
           import AbstractService.implicitConversions._
 
-          override val validate: WSResponse ⇒ Try[String] = response ⇒ response.json.result.validate[String]
+          override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
           override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
@@ -174,7 +174,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
         when(responseMock.json).thenReturn(JsString(""))
 
         val service = new TestService()
-        for {i ← 1 to 100} {
+        for {i <- 1 to 100} {
           Await.result(service.execute(), 1.second)
         }
         verify(mockRequest, times(100)).execute(anyString())

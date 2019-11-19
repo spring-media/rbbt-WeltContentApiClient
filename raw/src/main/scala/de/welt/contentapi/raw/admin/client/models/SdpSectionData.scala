@@ -16,7 +16,7 @@ case class SdpSectionData(url: String,
     val root = transform
     // initially set hasAdTag to true for level 0 & 1 of the section tree
     root.config = defineAdTags(root.config)
-    root.children.foreach { child ⇒ child.config = defineAdTags(child.config) }
+    root.children.foreach { child => child.config = defineAdTags(child.config) }
 
     // set the parent-relation for all elements
     root.updateParentRelations()
@@ -27,8 +27,8 @@ case class SdpSectionData(url: String,
     id = RawChannelId(path = url, escenicId = id, label = displayName),
     children = children.map(_.transform),
     metadata = RawMetadata(lastModifiedDate = lastModifiedDate match {
-      case Some(s) if s.nonEmpty ⇒ s.toLong
-      case _ ⇒ Instant.now.toEpochMilli
+      case Some(s) if s.nonEmpty => s.toLong
+      case _ => Instant.now.toEpochMilli
     })
   )
 }

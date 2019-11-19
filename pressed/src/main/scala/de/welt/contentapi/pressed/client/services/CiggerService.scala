@@ -41,7 +41,7 @@ class CiggerServiceImpl @Inject()(ws: WSClient,
 
   import AbstractService.implicitConversions._
 
-  override val validate: WSResponse ⇒ Try[ApiPressedContentResponse] = response ⇒ response.json.result
+  override val validate: WSResponse => Try[ApiPressedContentResponse] = response => response.json.result
     .validate[ApiPressedContentResponse](PressedReads.apiPressedContentResponseReads)
 
   override def byId(id: String,
@@ -50,10 +50,10 @@ class CiggerServiceImpl @Inject()(ws: WSClient,
                     page: Option[Int],
                     pageSize: Option[Int])(implicit rh: RequestHeaders): Future[ApiPressedContentResponse] = {
 
-    val showRelatedParam = if (showRelated) Some("show-related" → "true") else None
-    val embedParam = if (doEmbed) Some("embed" → "true") else None
-    val pageParam = page.map("page" → _.toString)
-    val pageSizeParam = pageSize.map("page-size" → _.toString)
+    val showRelatedParam = if (showRelated) Some("show-related" -> "true") else None
+    val embedParam = if (doEmbed) Some("embed" -> "true") else None
+    val pageParam = page.map("page" -> _.toString)
+    val pageSizeParam = pageSize.map("page-size" -> _.toString)
 
     val parameters = (showRelatedParam ++ embedParam ++ pageParam ++ pageSizeParam).toSeq
 

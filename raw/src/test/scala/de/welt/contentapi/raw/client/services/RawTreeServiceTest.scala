@@ -4,7 +4,7 @@ import de.welt.contentapi.TestExecutionContext
 import de.welt.contentapi.core.client.services.aws.s3.S3Client
 import de.welt.contentapi.core.client.services.configuration.ApiConfiguration
 import org.mockito.{ArgumentMatchers, Mockito}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
 class RawTreeServiceTest extends PlaySpec with MockitoSugar {

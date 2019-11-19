@@ -13,7 +13,7 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import de.welt.contentapi.core.client.services.aws.ssm.ParameterStore
 import de.welt.contentapi.utils.Loggable
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
@@ -39,7 +39,7 @@ class ApiConfiguration extends Loggable {
     log.debug(s"[SSM] Loading config. path='$path'.")
     val configMap: Map[String, String] = params.map {
       // remove the path prefix from ssm
-      case (key: String, value: String) ⇒ key.replaceFirst(path, "") → value
+      case (key: String, value: String) => key.replaceFirst(path, "") -> value
     }
     ConfigFactory.parseMap(configMap.asJava, s"SSM param store @$path").resolve()
   }
@@ -78,11 +78,11 @@ class ApiConfiguration extends Loggable {
       )
 
       config match {
-        case Success(value) ⇒
+        case Success(value) =>
           log.debug(s"Finished loading Configuration in ${sw.stop().toString}.")
           log.debug(value.root().render(ConfigRenderOptions.concise()))
           value
-        case Failure(exception) ⇒
+        case Failure(exception) =>
           log.error("Could not load config.", exception)
           throw exception
       }
@@ -93,7 +93,7 @@ class ApiConfiguration extends Loggable {
   //noinspection ScalaStyle
   def reportError(path: String, userMessage: String, th: Throwable = null, c: Config = configuration): Nothing = {
     val message = Option(if (c.hasPath(path)) c.getValue(path).origin else c.root.origin)
-      .map(origin ⇒ s"Configuration Error. $userMessage [config source: ${origin.toString}]")
+      .map(origin => s"Configuration Error. $userMessage [config source: ${origin.toString}]")
       .getOrElse(s"Configuration Error. $userMessage")
 
     reportError(message, ConfigurationException(message, th))
@@ -119,13 +119,13 @@ class ApiConfiguration extends Loggable {
   object aws {
 
     //noinspection ScalaStyle
-    val loadConfig: File ⇒ Try[mutable.Map[String, BasicProfile]] = file ⇒ if (null != file && file.exists()) {
+    val loadConfig: File => Try[mutable.Map[String, BasicProfile]] = file => if (null != file && file.exists()) {
       log.info(s"Trying to read file ${file.getName} for AWS credentials.")
       Try(
         BasicProfileConfigLoader.INSTANCE.loadProfiles(file).getProfiles.asScala.map {
           case (k: String, v: BasicProfile) => k.replaceFirst("^profile ", "") -> v
         }).recover {
-        case th: Throwable ⇒
+        case th: Throwable =>
           log.info(s"Could not load ${file.getName}", th)
           mutable.Map.empty[String, BasicProfile]
       }
@@ -142,11 +142,11 @@ class ApiConfiguration extends Loggable {
       // workaround: https://gist.github.com/adrian-baker/81ec8e7cd8f8e15d343157ac9116faac
 
       val allProfiles: mutable.Map[String, BasicProfile] = (for {
-        configs ← loadConfig(AwsProfileFileLocationProvider.DEFAULT_CONFIG_LOCATION_PROVIDER.getLocation)
-        profiles ← loadConfig(AwsProfileFileLocationProvider.DEFAULT_CREDENTIALS_LOCATION_PROVIDER.getLocation)
+        configs <- loadConfig(AwsProfileFileLocationProvider.DEFAULT_CONFIG_LOCATION_PROVIDER.getLocation)
+        profiles <- loadConfig(AwsProfileFileLocationProvider.DEFAULT_CREDENTIALS_LOCATION_PROVIDER.getLocation)
       } yield configs ++ profiles).getOrElse(mutable.Map.empty)
 
-      val maybeProfileCredentialsProvider = allProfiles.get("frontend").map { frontendProfile ⇒
+      val maybeProfileCredentialsProvider = allProfiles.get("frontend").map { frontendProfile =>
         if (frontendProfile.isRoleBasedProfile) {
           new ProfileAssumeRoleCredentialsProvider(
             STSProfileCredentialsServiceLoader.getInstance(),
@@ -170,7 +170,7 @@ class ApiConfiguration extends Loggable {
         log.debug("Returning Provider")
         Success(provider)
       } catch {
-        case ex: AmazonClientException ⇒
+        case ex: AmazonClientException =>
           log.error(ex.getMessage, ex)
           throw ex
       }

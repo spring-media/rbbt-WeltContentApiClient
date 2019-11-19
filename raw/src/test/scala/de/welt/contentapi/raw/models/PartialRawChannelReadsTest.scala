@@ -14,7 +14,7 @@ class PartialRawChannelReadsTest extends PlaySpec {
 
       val originalModuleName = "module-for-partial-raw-channel-reads"
       val originalIndex = 99
-      val originalOverrides = Some(Map("section" → "/foo/"))
+      val originalOverrides = Some(Map("section" -> "/foo/"))
       val originalTrackingName = Some("tracking-name")
       val originalLogo = Some("logo")
       val originalLink = Some(RawSectionReference(path = Some("https://www.dick-butt.org")))
@@ -32,14 +32,14 @@ class PartialRawChannelReadsTest extends PlaySpec {
       private val channelStage = Json.fromJson(rawStageAsJson).asOpt.orNull
 
       val rawChannelAsJsObject: JsObject = JsObject(Map(
-        "id" → JsObject(Map(
-          "path" → JsString("le-path"),
-          "label" → JsString("id"),
-          "escenicId" → JsNumber(1337)
+        "id" -> JsObject(Map(
+          "path" -> JsString("le-path"),
+          "label" -> JsString("id"),
+          "escenicId" -> JsNumber(1337)
         )),
-        "config" → Json.toJson(RawChannelConfiguration())(RawWrites.rawChannelConfigurationWrites),
-        "metadata" → Json.toJson(RawMetadata())(RawWrites.rawMetadataWrites),
-        "stageConfiguration" → Json.toJson(RawChannelStageConfiguration(
+        "config" -> Json.toJson(RawChannelConfiguration())(RawWrites.rawChannelConfigurationWrites),
+        "metadata" -> Json.toJson(RawMetadata())(RawWrites.rawMetadataWrites),
+        "stageConfiguration" -> Json.toJson(RawChannelStageConfiguration(
           stages = Some(Seq(channelStage))
         ))(RawWrites.rawChannelStageConfigurationWrites)
       ))

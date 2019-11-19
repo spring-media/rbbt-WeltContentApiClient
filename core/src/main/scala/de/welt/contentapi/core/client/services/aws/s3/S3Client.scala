@@ -17,11 +17,11 @@ class S3Client @Inject()(client: AmazonS3) extends Loggable {
 
   def get(bucket: String, key: String): Option[String] = withS3Result(bucket, key)({
     log.debug(s"get($key)")
-    result ⇒ Source.fromInputStream(result.getObjectContent).mkString
+    result => Source.fromInputStream(result.getObjectContent).mkString
   })
 
   def getWithLastModified(bucket: String, key: String): Option[(String, Instant)] = withS3Result(bucket, key)({
-    result ⇒
+    result =>
       val content = Source.fromInputStream(result.getObjectContent).mkString
       val lastModified = result.getObjectMetadata.getLastModified.toInstant
       (content, lastModified)
@@ -32,7 +32,7 @@ class S3Client @Inject()(client: AmazonS3) extends Loggable {
     try {
       Some(client.getObjectMetadata(request).getLastModified.toInstant)
     } catch {
-      case _: Exception ⇒ None
+      case _: Exception => None
     }
   }
 
@@ -41,7 +41,7 @@ class S3Client @Inject()(client: AmazonS3) extends Loggable {
     put(bucket, key, value, contentType)
   }
 
-  private def withS3Result[T](bucket: String, key: String)(action: S3Object ⇒ T): Option[T] =
+  private def withS3Result[T](bucket: String, key: String)(action: S3Object => T): Option[T] =
     try {
       val request = new GetObjectRequest(bucket, key)
       val result = client.getObject(request)
@@ -53,13 +53,13 @@ class S3Client @Inject()(client: AmazonS3) extends Loggable {
         result.close()
       }
     } catch {
-      case e: AmazonS3Exception if e.getStatusCode == 404 ⇒
+      case e: AmazonS3Exception if e.getStatusCode == 404 =>
         log.debug("not found at %s - %s" format(bucket, key))
         None
     }
 
 
-  private def put(bucket: String, key: String, value: String, contentType: String) {
+  private def put(bucket: String, key: String, value: String, contentType: String): Unit = {
     val metadata = new ObjectMetadata()
     metadata.setContentType(contentType)
     metadata.setContentLength(value.getBytes("UTF-8").length)

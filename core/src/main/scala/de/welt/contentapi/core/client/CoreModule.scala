@@ -28,7 +28,7 @@ class CoreModule extends AbstractModule with Loggable {
       log.error("[CommonModule] Please mock the S3Client when running in Test mode.")
       throw new RuntimeException("Please mock the S3Client when running in Test mode.")
     } else {
-      ApiConfiguration.aws.credentials.map { credentials ⇒
+      ApiConfiguration.aws.credentials.map { credentials =>
         val region: Regions = Try(ApiConfiguration.aws.s3.region).map(Regions.fromName).getOrElse(Regions.EU_WEST_1)
         log.debug(s"s3 connected to $region")
         AmazonS3Client.builder()
@@ -36,8 +36,8 @@ class CoreModule extends AbstractModule with Loggable {
           .withRegion(region)
           .build()
       } match {
-        case Success(value) ⇒ value
-        case Failure(th) ⇒
+        case Success(value) => value
+        case Failure(th) =>
           log.error("Could not initialize AWS S3 Client.", th)
           throw th
       }

@@ -4,7 +4,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import de.welt.contentapi.utils.Loggable
 import play.api.Configuration
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.util.{Success, Try}
 
@@ -29,36 +29,36 @@ object Environment extends Loggable {
     * Also, there should be a dedicated test config that will be loaded during testing, provide it
     * via: `-Dconfig.resource=application.test.conf` to the JVM
     */
-  private val envFromConfigFile: Provider ⇒ String = provider ⇒
+  private val envFromConfigFile: Provider => String = provider =>
     extract(provider, "config.resource")
       .orElse(Some("application.conf"))
-      .map(resourceName ⇒ ConfigFactory.parseResourcesAnySyntax(resourceName).resolve())
+      .map(resourceName => ConfigFactory.parseResourcesAnySyntax(resourceName).resolve())
       .map(Configuration(_))
-      .flatMap(config ⇒ config.getOptional[String]("content_api.mode"))
+      .flatMap(config => config.getOptional[String]("content_api.mode"))
       .getOrElse(extract(sys.env, "MODE", "test"))
       .toLowerCase()
 
-  protected[configuration] val parseVersionConfFile: Config ⇒ Try[(String, mutable.Buffer[String])] = rootConfig ⇒ {
+  protected[configuration] val parseVersionConfFile: Config => Try[(String, mutable.Buffer[String])] = rootConfig => {
     for {
-      config ← Try(rootConfig.getConfig("build_info"))
-      key ← Try(config.getString("module"))
-      value ← Try(config.getList("dependencies").asScala.map(_.unwrapped())
-        .collect { case s: String ⇒ s }.sorted)
+      config <- Try(rootConfig.getConfig("build_info"))
+      key <- Try(config.getString("module"))
+      value <- Try(config.getList("dependencies").asScala.map(_.unwrapped())
+        .collect { case s: String => s }.sorted)
         .orElse(Success(mutable.Buffer.empty[String]))
-    } yield key → value
+    } yield key -> value
   }
 
-  protected[configuration] val findCurrentModule: Map[String, mutable.Buffer[String]] ⇒ Option[String] = sbtModules ⇒ sbtModules.find {
-    case (name, _) ⇒ !sbtModules.exists {
-      case (_, dependencies) ⇒ dependencies.contains(name)
+  protected[configuration] val findCurrentModule: Map[String, mutable.Buffer[String]] => Option[String] = sbtModules => sbtModules.find {
+    case (name, _) => !sbtModules.exists {
+      case (_, dependencies) => dependencies.contains(name)
     }
   }.map(_._1)
 
   val stage: Mode = envFromConfigFile(sys.props.toMap) match {
-    case "prod" | "production" ⇒ Production
-    case "staging" ⇒ Staging
-    case "dev" | "development" ⇒ Development
-    case _ ⇒ Test
+    case "prod" | "production" => Production
+    case "staging" => Staging
+    case "dev" | "development" => Development
+    case _ => Test
   }
 
   /**
@@ -83,10 +83,10 @@ object Environment extends Loggable {
       // 3. Each of our version conf files exposes their sub-project-dependencies, we're searching for the root of this
       //      dependency tree
       val sbtModules = (getClass.getClassLoader.getResources("version.conf").asScala
-        .map(res ⇒
+        .map(res =>
           Try(ConfigFactory.parseURL(res)).flatMap(parseVersionConfFile)
         ) collect {
-        case Success(value) ⇒ value
+        case Success(value) => value
       }).toMap
 
       val currentModule = findCurrentModule(sbtModules)
