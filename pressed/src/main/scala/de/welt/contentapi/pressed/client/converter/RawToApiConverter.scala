@@ -232,7 +232,8 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
       thirdParty = Some(thirdPartyCommercialFromRawChannelCommercial(rawChannel.config.commercial)),
       adIndicator = rawChannel.config.header.map(_.adIndicator),
       showFallbackAds = Some(rawChannel.config.commercial.showFallbackAds),
-      disableAdvertisement = Some(rawChannel.config.commercial.disableAdvertisement)
+      disableAdvertisement = Some(rawChannel.config.commercial.disableAdvertisement),
+      isTrackingOnly = Some(rawChannel.config.commercial.isTrackingOnly)
     )
   }
 

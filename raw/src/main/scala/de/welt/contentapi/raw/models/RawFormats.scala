@@ -167,13 +167,15 @@ object RawReads {
         contentTaboola <- underlying.get("contentTaboola").map(_.as[RawChannelTaboolaCommercial]).orElse(Some(defaults.contentTaboola))
         showFallbackAds <- underlying.get("showFallbackAds").map(_.as[Boolean]).orElse(Some(defaults.showFallbackAds))
         disableAdvertisement <- underlying.get("disableAdvertisement").map(_.as[Boolean]).orElse(Some(false))
+        isTrackingOnly <- underlying.get("isTrackingOnly").map(_.as[Boolean]).orElse(Some(false))
       } yield JsSuccess(
         RawChannelCommercial(
           definesAdTag = definesAdTag,
           definesVideoAdTag = definesVideoAdTag,
           contentTaboola = contentTaboola,
           showFallbackAds = showFallbackAds,
-          disableAdvertisement = disableAdvertisement
+          disableAdvertisement = disableAdvertisement,
+          isTrackingOnly = isTrackingOnly
         )
       )).getOrElse(jsErrorInvalidData("RawChannelCommercial", json))
       case err@_ => jsErrorInvalidJson(err)

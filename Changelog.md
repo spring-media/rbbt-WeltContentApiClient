@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.1 (2019-11-22)
+
+### Changes
+- [RAW] added optional field `isTrackingOnly` as part of `RawChannelCommercial`
+
 ## 6.0 (2019-11-11)
 
 ### Breaking Changes

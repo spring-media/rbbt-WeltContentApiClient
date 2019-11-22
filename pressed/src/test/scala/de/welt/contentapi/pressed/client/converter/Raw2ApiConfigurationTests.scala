@@ -46,7 +46,8 @@ class Raw2ApiConfigurationTests extends PlaySpec {
         showWebExtended = false
       ),
       showFallbackAds = false,
-      disableAdvertisement = true
+      disableAdvertisement = true,
+      isTrackingOnly = true
     )
 
     val rawChannelSiteBuilding = RawChannelSiteBuilding(
@@ -248,6 +249,10 @@ class Raw2ApiConfigurationTests extends PlaySpec {
 
     "copy 'showFallbackAds = false' value from RAW to API" in new TestScopeConfiguration {
       apiCommercialConfiguration.showFallbackAds mustBe Some(false)
+    }
+
+    "copy 'isTrackingOnly = true' value from RAW to API" in new TestScopeConfiguration {
+      apiCommercialConfiguration.isTrackingOnly mustBe Some(true)
     }
 
     "assume true as default value for showFallbackAds" in new TestScopeConfiguration {

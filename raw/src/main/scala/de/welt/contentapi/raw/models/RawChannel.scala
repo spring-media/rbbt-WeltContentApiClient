@@ -259,12 +259,15 @@ case class RawArticlePromotion(contentId: String, `type`: String)
   * @param contentTaboola       Controls Taboola commercials on all content pages of the channel.
   * @param showFallbackAds      Control to display fallback ads if ASMI fails to deliver their own for several ad formats (m-rectangle, skyscraper, ...)
   * @param disableAdvertisement Disable all advertisements for this channel; does not inherit to children (#akalies)
+  * @param isTrackingOnly       Controls whether the channel uses only tracking scripts loaded by AdTech's welt.js script.
+  *                             If set, no ads are loaded by welt.js.
   */
 case class RawChannelCommercial(definesAdTag: Boolean = false,
                                 definesVideoAdTag: Boolean = false,
                                 var contentTaboola: RawChannelTaboolaCommercial = RawChannelTaboolaCommercial(),
                                 showFallbackAds: Boolean = true,
-                                disableAdvertisement: Boolean = false)
+                                disableAdvertisement: Boolean = false,
+                                isTrackingOnly: Boolean = false)
 
 /**
   * Enable/Disable Taboola scripts on content pages below the article text. Some Channel do not want
