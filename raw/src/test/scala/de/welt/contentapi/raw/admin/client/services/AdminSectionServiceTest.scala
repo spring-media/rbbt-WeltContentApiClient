@@ -5,7 +5,7 @@ import java.time.Instant
 import de.welt.contentapi.TestExecutionContext
 import de.welt.contentapi.core.client.services.aws.s3.S3Client
 import de.welt.contentapi.raw.models.FullRawChannelWrites.channelWrites
-import de.welt.contentapi.raw.models.{RawChannelConfiguration, RawChannelHeader, RawChannelStageConfiguration, RawChannelStageCustomModule}
+import de.welt.contentapi.raw.models.{RawChannelConfiguration, RawChannelSiteBuilding, RawChannelStageConfiguration, RawChannelStageCustomModule}
 import de.welt.testing.TestHelper.raw.channel.emptyWithId
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito
@@ -44,9 +44,7 @@ class AdminSectionServiceTest extends PlaySpec with MockitoSugar {
       val testChannel = emptyWithId(0)
       private val json = Json.toJson(testChannel)(channelWrites).toString
       private val expectedConfig = RawChannelConfiguration(
-        header = Some(RawChannelHeader(
-          logo = Some("foo")
-        ))
+        siteBuilding = Some(RawChannelSiteBuilding(fields = Some(Map("foo" -> "bar"))))
       )
 
       // when

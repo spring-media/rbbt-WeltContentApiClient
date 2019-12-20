@@ -9,17 +9,11 @@ import de.welt.contentapi.core.models.{ApiElement, ApiReference}
   *
   * @param meta         configuration for <meta> tag overrides
   * @param commercial   commercial configuration
-  * @param sponsoring   sponsoring is part of the page header. E.g. Formel1
-  * @param header       (content) page header configuration. Not the real page header.
   * @param theme        theme of the page. This contains only a mapping value.
   * @param siteBuilding customization of header, footer and channel sponsoring
   */
 case class ApiConfiguration(meta: Option[ApiMetaConfiguration] = None,
                             commercial: Option[ApiCommercialConfiguration] = None,
-                            @deprecated("Use siteBuilding instead", since = "version 2.3")
-                            sponsoring: Option[ApiSponsoringConfiguration] = None,
-                            @deprecated("Use siteBuilding instead", since = "version 2.3")
-                            header: Option[ApiHeaderConfiguration] = None,
                             theme: Option[ApiThemeConfiguration] = None,
                             siteBuilding: Option[ApiSiteBuildingConfiguration] = None)
 
@@ -69,7 +63,6 @@ case class ApiMetaRobots(noIndex: Option[Boolean] = None, noFollow: Option[Boole
   * @param pathForAdTag         path used to build the ad tag in client
   * @param pathForVideoAdTag    path used to build the video ad tag in client
   * @param thirdParty           controls 3rd-party commercial scripts
-  * @param adIndicator          Indicator for an advertorial or mark as advertisement. Used for: display the label 'Anzeige'.
   * @param showFallbackAds      Control to display fallback ads if ASMI fails to deliver their own for several ad formats (m-rectangle, skyscraper, ...)
   * @param disableAdvertisement Disable all advertisement for this channel; does not inherit to children
   * @param isTrackingOnly       Controls whether the channel uses only tracking scripts loaded by AdTech's welt.js script.
@@ -78,7 +71,6 @@ case class ApiMetaRobots(noIndex: Option[Boolean] = None, noFollow: Option[Boole
 case class ApiCommercialConfiguration(pathForAdTag: Option[String] = None,
                                       pathForVideoAdTag: Option[String] = None,
                                       thirdParty: Option[ApiCommercial3rdPartyConfiguration] = None,
-                                      adIndicator: Option[Boolean] = None,
                                       showFallbackAds: Option[Boolean] = Some(true),
                                       disableAdvertisement: Option[Boolean] = Some(false),
                                       isTrackingOnly: Option[Boolean] = Some(false))

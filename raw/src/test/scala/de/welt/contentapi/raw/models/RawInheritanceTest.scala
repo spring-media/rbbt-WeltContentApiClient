@@ -41,21 +41,6 @@ class RawInheritanceTest extends PlaySpec {
       bundesliga.stageConfiguration mustBe Some(template)
     }
 
-    "set the RawChannelHeader for all children" in new TestScope {
-      // Given
-      val newHeader = RawChannelHeader(
-        logo = Some("logo")
-      )
-      // When
-      root.batchInheritRawChannelHeaderToAllChildren(newHeader, "user")
-
-      // Then
-      root.config.header mustBe None
-      sport.config.header mustBe Some(newHeader)
-      fussball.config.header mustBe Some(newHeader)
-      bundesliga.config.header mustBe Some(newHeader)
-    }
-
     "set a Taboola Config for all children" in new TestScope {
       // Given
       val newTaboola = RawChannelTaboolaCommercial(
@@ -86,23 +71,6 @@ class RawInheritanceTest extends PlaySpec {
       sport.config.theme mustBe Some(newTheme)
       fussball.config.theme mustBe Some(newTheme)
       bundesliga.config.theme mustBe Some(newTheme)
-    }
-
-    "set a RawChannelSponsoring for all children" in new TestScope {
-      // Given
-      val newSponsoring = RawSponsoringConfig(
-        logo = Some("EA SPORTS"),
-        slogan = Some("zin ze game")
-      )
-
-      // When
-      root.batchInheritRawChannelSponsoringToAllChildren(newSponsoring = newSponsoring, "user")
-
-      // Then
-      root.config.sponsoring mustBe RawSponsoringConfig()
-      sport.config.sponsoring mustBe newSponsoring
-      fussball.config.sponsoring mustBe newSponsoring
-      bundesliga.config.sponsoring mustBe newSponsoring
     }
 
     "sets the user and lastMod date after inheritance actions" in new TestScope {

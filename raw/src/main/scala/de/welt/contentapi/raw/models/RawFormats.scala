@@ -26,8 +26,6 @@ object RawFormats {
     Format[RawElement](rawElementReads, rawElementWrites)
   implicit lazy val rawChannelSiteBuildingFormat: Format[RawChannelSiteBuilding] =
     Format[RawChannelSiteBuilding](rawChannelSiteBuildingReads, rawChannelSiteBuildingWrites)
-  implicit lazy val rawChannelHeaderFormat: Format[RawChannelHeader] =
-    Format[RawChannelHeader](rawChannelHeaderReads, rawChannelHeaderWrites)
   implicit lazy val rawChannelContentConfigurationFormat: Format[RawChannelContentConfiguration] =
     Format[RawChannelContentConfiguration](rawChannelContentConfigurationReads, rawChannelContentConfigurationWrites)
   implicit lazy val rawChannelStageConfigurationFormat: Format[RawChannelStageConfiguration] =
@@ -114,27 +112,6 @@ object RawReads {
     }
   }
 
-  implicit lazy val rawChannelHeaderReads: Reads[RawChannelHeader] = new Reads[RawChannelHeader] {
-    private lazy val defaults: RawChannelHeader = RawChannelHeader()
-    override def reads(json: JsValue): JsResult[RawChannelHeader] = json match {
-      case JsObject(underlying) => (for {
-        hidden <- underlying.get("hidden").map(_.as[Boolean]).orElse(Some(defaults.hidden))
-        adIndicator <- underlying.get("adIndicator").map(_.as[Boolean]).orElse(Some(defaults.adIndicator))
-      } yield JsSuccess(
-        RawChannelHeader(
-          logo = underlying.get("logo").map(_.as[String]).filter(_.nonEmpty),
-          slogan = underlying.get("slogan").map(_.as[String]).filter(_.nonEmpty),
-          label = underlying.get("label").map(_.as[String]).filter(_.nonEmpty),
-          sectionReferences = underlying.get("sectionReferences").map(_.as[Seq[RawSectionReference]]).filter(_.nonEmpty),
-          hidden = hidden,
-          adIndicator = adIndicator,
-          sloganReference = underlying.get("sloganReference").map(_.as[RawSectionReference]),
-          headerReference = underlying.get("headerReference").map(_.as[RawSectionReference])
-        )
-      )).getOrElse(jsErrorInvalidData("RawChannelHeader", json))
-      case err@_ => jsErrorInvalidJson(err)
-    }
-  }
   implicit lazy val rawChannelContentConfigurationReads: Reads[RawChannelContentConfiguration] = Json.reads[RawChannelContentConfiguration]
   implicit lazy val rawChannelStageConfigurationReads: Reads[RawChannelStageConfiguration] = Json.reads[RawChannelStageConfiguration]
 
@@ -247,16 +224,9 @@ object RawReads {
 
     override def reads(json: JsValue): JsResult[RawChannelConfiguration] = json match {
       case JsObject(underlying) =>
-        val maybeChannelHeader = underlying.get("header").map(_.as[RawChannelHeader])
-        val maybeSponsoringConfig = underlying.get("sponsoring").map(_.as[RawSponsoringConfig])
-        val maybeSiteBuilding = underlying.get("siteBuilding").map(_.as[RawChannelSiteBuilding]).filterNot(_.isEmpty)
-
         JsSuccess(RawChannelConfiguration(
           metadata = underlying.get("metadata").map(_.as[RawChannelMetadata]),
-          header = maybeChannelHeader,
-          sponsoring = maybeSponsoringConfig
-            .getOrElse(defaults.sponsoring),
-          siteBuilding = maybeSiteBuilding,
+          siteBuilding = underlying.get("siteBuilding").map(_.as[RawChannelSiteBuilding]).filterNot(_.isEmpty),
           theme = underlying.get("theme").map(_.as[RawChannelTheme]),
           commercial = underlying.get("commercial").map(_.as[RawChannelCommercial]).getOrElse(defaults.commercial),
           content = underlying.get("content").map(_.as[RawChannelContentConfiguration]),
@@ -310,7 +280,6 @@ object RawWrites {
   implicit lazy val rawAssetWrites: Writes[RawAsset] = Json.writes[RawAsset]
   implicit lazy val rawElementWrites: Writes[RawElement] = Json.writes[RawElement]
   implicit lazy val rawChannelSiteBuildingWrites: Writes[RawChannelSiteBuilding] = Json.writes[RawChannelSiteBuilding]
-  implicit lazy val rawChannelHeaderWrites: Writes[RawChannelHeader] = Json.writes[RawChannelHeader]
   implicit lazy val rawChannelContentConfigurationWrites: Writes[RawChannelContentConfiguration] = Json.writes[RawChannelContentConfiguration]
   implicit lazy val rawChannelStageConfigurationWrites: Writes[RawChannelStageConfiguration] = Json.writes[RawChannelStageConfiguration]
   implicit lazy val rawChannelTaboolaCommercialWrites: Writes[RawChannelTaboolaCommercial] = Json.writes[RawChannelTaboolaCommercial]

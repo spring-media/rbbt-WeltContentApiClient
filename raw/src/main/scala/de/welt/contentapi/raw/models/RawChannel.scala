@@ -146,28 +146,12 @@ case class RawChannel(id: RawChannelId,
     batchInheritGenericToAllChildren({_.stageConfiguration = Some(newStageConfig)}, user)
 
   /**
-    * set the same RawChannelSponsoring for all Sub-Channels but not the channel itself
-    *
-    * @param newSponsoring New Sponsoring to inherit
-    */
-  def batchInheritRawChannelSponsoringToAllChildren(newSponsoring: RawSponsoringConfig, user: String): Unit =
-    batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(sponsoring = newSponsoring) }, user)
-
-  /**
     * set the same RawChannelTheme for all Sub-Channels but not the channel itself
     *
     * @param newTheme New RawChannelTheme to inherit
     */
   def batchInheritRawChannelThemeToAllChildren(newTheme: RawChannelTheme, user: String): Unit =
     batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(theme = Some(newTheme)) }, user)
-
-  /**
-    * set the same RawChannelHeader for all Sub-Channels but not the channel itself
-    *
-    * @param newHeader New header to inherit
-    */
-  def batchInheritRawChannelHeaderToAllChildren(newHeader: RawChannelHeader, user: String): Unit =
-    batchInheritGenericToAllChildren({ rawChannel => rawChannel.config = rawChannel.config.copy(header = Some(newHeader)) }, user)
 
   /**
     * set the same RawChannelTaboolaCommercial for all Sub-Channels but not the channel itself
@@ -216,8 +200,6 @@ case class RawChannelId(var path: String,
 
 /**
   * @param metadata          `<meta>` tag overrides of the channel.
-  * @param header            content header (not the real page header) configuration.
-  * @param sponsoring        sponsoring mapping configuration for the channel.
   * @param siteBuilding      customization of header, footer and channel sponsoring.
   * @param theme             the optional theme for the channel. This is a developer configuration.
   * @param commercial        commercial configuration for the channel. Used some override logic.
@@ -229,10 +211,6 @@ case class RawChannelId(var path: String,
   *                          as it's master. E.g. `/wirtschaft/bilanz/` is flagged as a master channel
   */
 case class RawChannelConfiguration(metadata: Option[RawChannelMetadata] = None,
-                                   @deprecated("Use siteBuilding instead", since = "version 2.3")
-                                   header: Option[RawChannelHeader] = None,
-                                   @deprecated("Use siteBuilding instead", since = "version 2.3")
-                                   sponsoring: RawSponsoringConfig = RawSponsoringConfig(),
                                    siteBuilding: Option[RawChannelSiteBuilding] = None,
                                    theme: Option[RawChannelTheme] = None,
                                    commercial: RawChannelCommercial = RawChannelCommercial(),
@@ -333,42 +311,6 @@ case class RawChannelMetaRobotsTag(noIndex: Option[Boolean] = None, noFollow: Op
   */
 case class RawSectionReference(label: Option[String] = None, path: Option[String] = None)
 
-/**
-  * @param label             display name of the channel. The fallback label is always the [[RawChannelId.label]]
-  * @param logo              only a mapping string for the client. Used for a svg/image logo to replace the label.
-  *                          Display-Logic: `logo.getOrElse(label)`
-  * @param headerReference   Optional link for the logo/label.
-  *                          Link logic (pseudo-code):  `headerReference.getOrElse(Master-Channel-Link)`
-  * @param slogan            slogan for the channel. E.g. /kmpkt/: 'NEWS TO GO. EINZIGARTIG ANDERS.'
-  * @param sloganReference   Optional link for the slogan.
-  * @param sectionReferences Used as a sub-navigation to make sub-channels reachable
-  * @param hidden            hide only the channel header. (Not affected: Sponsoring, References). Default = `false`
-  * @param adIndicator       Indicator for an advertorial or mark as advertisement. Used for: display the label 'Anzeige'.
-  *                          Default = `false`
-  */
-case class RawChannelHeader(label: Option[String] = None,
-                            logo: Option[String] = None,
-                            headerReference: Option[RawSectionReference] = None,
-                            slogan: Option[String] = None,
-                            sloganReference: Option[RawSectionReference] = None,
-                            sectionReferences: Option[Seq[RawSectionReference]] = None, // == SubNavi
-                            hidden: Boolean = false, // => complete clean header
-                            adIndicator: Boolean = false) {
-
-  lazy val unwrappedSectionReferences: Seq[RawSectionReference] = sectionReferences.getOrElse(Nil)
-
-  /**
-    * isEmpty / nonEmpty are used for inheritance decisions
-    *
-    * because hidden and adIndicator are not optional fields the RawChannelHeader object is always `Some()`
-    * Some(RawChannelHeader) may still be counted as empty if
-    *   a) its values are equal to the Constructor defaults
-    *   b) only adIndicator is set to true
-    *      the field is wrongly placed here, because it is only used for the Commercial Configuration
-    */
-  lazy val isEmpty: Boolean = this == RawChannelHeader() || this == RawChannelHeader(adIndicator = true)
-  lazy val nonEmpty: Boolean = !isEmpty
-}
 
 /**
   * A channel or a stage can be sponsored by a partner or brand with a special logo + slogan. This is mostly part of the

@@ -19,16 +19,6 @@ class Raw2ApiConfigurationTests extends PlaySpec {
       name = Some("theme"),
       fields = Some(Map("key1" -> "value2", "key2" -> "value2"))
     )
-    val rawChannelHeader = RawChannelHeader(
-      label = Some("label"),
-      logo = Some("logo"),
-      slogan = Some("slogan"),
-      hidden = true,
-      sectionReferences = Some(Seq(RawSectionReference(Some("Label"), Some("/Path/")))),
-      adIndicator = true,
-      headerReference = Some(RawSectionReference(Some("Label"), Some("/link-for-logo-or-label.html"))),
-      sloganReference = Some(RawSectionReference(Some(""), Some("/link-for-slogan.html")))
-    )
     val rawChannelSponsoring = RawSponsoringConfig(
       logo = Some("logo"),
       slogan = Some("slogan"),
@@ -60,7 +50,7 @@ class Raw2ApiConfigurationTests extends PlaySpec {
           assets = Some(List(
             RawAsset(
               `type` = "image",
-              fields = Some(Map("key1" -> "value2", "key2" -> "value2"))
+              fields = Some(Map("key1" -> "value2", "key2" -> "value2", "sponsoring_ad_indicator" -> "true"))
             )
           ))
         )
@@ -69,8 +59,6 @@ class Raw2ApiConfigurationTests extends PlaySpec {
 
     val rawChannelConfiguration = RawChannelConfiguration(
       metadata = Some(rawChannelMetadata),
-      header = Some(rawChannelHeader),
-      sponsoring = rawChannelSponsoring,
       theme = Some(rawChannelTheme),
       siteBuilding = Some(rawChannelSiteBuilding),
       commercial = rawChannelCommercial,
@@ -81,9 +69,7 @@ class Raw2ApiConfigurationTests extends PlaySpec {
     val converter: RawToApiConverter = new RawToApiConverter(new InheritanceCalculator())
     val rawChannel: RawChannel = emptyWithIdAndConfig(rawChannelId, rawChannelConfiguration)
     val apiChannel: ApiChannel = converter.apiChannelFromRawChannel(rawChannel)
-    val apiHeaderConfiguration: ApiHeaderConfiguration = converter.calculateHeader(rawChannel).get
     val apiSiteBuildingConfiguration: ApiSiteBuildingConfiguration = converter.calculateSiteBuilding(rawChannel).get
-    val apiSponsoringConfiguration: ApiSponsoringConfiguration = converter.apiSponsoringConfigurationFromRawChannel(rawChannel)
     val apiCommercialConfiguration: ApiCommercialConfiguration = converter.apiCommercialConfigurationFromRawChannel(rawChannel)
 
     val apiMetaConfiguration: ApiMetaConfiguration = converter.apiMetaConfigurationFromRawChannel(rawChannel = rawChannel)
@@ -140,41 +126,6 @@ class Raw2ApiConfigurationTests extends PlaySpec {
 
   }
 
-  "RawChannelHeader to ApiHeaderConfiguration" must {
-
-    "convert `label`" in new TestScopeConfiguration {
-      apiHeaderConfiguration.label mustBe rawChannelHeader.label
-    }
-
-    "convert `logo`" in new TestScopeConfiguration {
-      apiHeaderConfiguration.logo mustBe rawChannelHeader.logo
-    }
-
-    "convert `slogan`" in new TestScopeConfiguration {
-      apiHeaderConfiguration.slogan mustBe rawChannelHeader.slogan
-    }
-
-    "convert `hidden`" in new TestScopeConfiguration {
-      apiHeaderConfiguration.hidden mustBe Some(rawChannelHeader.hidden)
-    }
-
-    "convert `references`" in new TestScopeConfiguration {
-      apiHeaderConfiguration
-        .unwrappedSectionReferences
-        .flatMap(r => r.label ++ r.href) must contain theSameElementsAs rawChannelHeader
-        .unwrappedSectionReferences
-        .flatMap(r => r.label ++ r.path)
-    }
-
-    "convert `headerReference`" in new TestScopeConfiguration {
-      private val apiHeaderReference = apiHeaderConfiguration.headerReference.map(r => (r.label, r.href))
-      private val rawHeaderReference = rawChannelHeader.headerReference.map(r => (r.label, r.path))
-
-      apiHeaderReference mustEqual rawHeaderReference
-    }
-
-  }
-
   "RawChannelSiteBuilding to ApiSiteBuildingConfiguration" must {
 
     "convert `fields`" in new TestScopeConfiguration {
@@ -197,36 +148,6 @@ class Raw2ApiConfigurationTests extends PlaySpec {
         ) must contain theSameElementsAs rawChannelSiteBuilding
         .unwrappedElements
         .flatMap(r => r.`type` + r.unwrappedAssets.flatMap(r2 => r2.`type`) + r.unwrappedAssets.flatMap(r2 => r2.fields))
-    }
-  }
-
-  "RawChannelSponsoring to ApiSponsoringConfiguration" must {
-
-    "convert `logo`" in new TestScopeConfiguration {
-      apiSponsoringConfiguration.logo mustBe rawChannelSponsoring.logo
-    }
-
-    "convert `slogan`" in new TestScopeConfiguration {
-      apiSponsoringConfiguration.slogan mustBe rawChannelSponsoring.slogan
-    }
-
-    "convert `hidden`" in new TestScopeConfiguration {
-      apiSponsoringConfiguration.hidden mustBe Some(rawChannelSponsoring.hidden)
-    }
-
-    "convert `adIndicator` (FIXME)" in new TestScopeConfiguration {
-      apiCommercialConfiguration.adIndicator mustBe Some(rawChannelHeader.adIndicator)
-    }
-
-    "convert `link`" in new TestScopeConfiguration {
-      private val apiSponsoringLink = apiSponsoringConfiguration.link.map(r => (r.label, r.href))
-      private val rawSponsoringLink = rawChannelSponsoring.link.map(r => (r.label, r.path))
-
-      apiSponsoringLink mustEqual rawSponsoringLink
-    }
-
-    "convert `brandstation`" in new TestScopeConfiguration {
-      apiSponsoringConfiguration.brandstation mustBe rawChannelSponsoring.brandstation
     }
   }
 

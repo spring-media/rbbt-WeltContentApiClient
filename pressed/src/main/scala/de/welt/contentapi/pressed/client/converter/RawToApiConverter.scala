@@ -48,8 +48,6 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
   def apiConfigurationFromRawChannel(rawChannel: RawChannel) = ApiConfiguration(
     meta = apiMetaConfigurationFromRawChannel(rawChannel),
     commercial = Some(apiCommercialConfigurationFromRawChannel(rawChannel)),
-    sponsoring = Some(apiSponsoringConfigurationFromRawChannel(rawChannel)),
-    header = calculateHeader(rawChannel),
     theme = calculateTheme(rawChannel),
     siteBuilding = calculateSiteBuilding(rawChannel)
   )
@@ -61,26 +59,6 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
   //todo: return Option[] (no hardcoded Some())
   private[converter] def calculatePathForAdTag(rawChannel: RawChannel): String =
     inheritanceCalculator.forChannel[String](rawChannel, pathForAdTagAction, c => c.config.commercial.definesAdTag)
-
-  /**
-    * Primarily converts the RawChannelHeader from the current RawChannel if its RawChannelHeader is nonEmpty
-    * Alternative is to search for a parent that is a `Master` and use its Header (empty headers may be inherited to children)
-    **/
-  @deprecated(message = "not needed anymore as soon as migration to sitebuilding is done", since = "5.0")
-  private[converter] def calculateHeader(rawChannel: RawChannel): Option[ApiHeaderConfiguration] =
-    rawChannel.config.header.find(_.nonEmpty) // is a valid header defined?
-      .orElse(calculateMasterChannel(rawChannel).flatMap(_.config.header)) // or else find a master to inherit its header
-      .map { result =>
-      ApiHeaderConfiguration(
-        label = result.label,
-        logo = result.logo,
-        headerReference = result.headerReference.map(ref => ApiReference(ref.label, ref.path)),
-        slogan = result.slogan,
-        sloganReference = result.sloganReference.map(ref => ApiReference(ref.label, ref.path)),
-        sectionReferences = result.sectionReferences.map(refs => refs.map(ref => ApiReference(ref.label, ref.path))),
-        hidden = Option(result.hidden)
-      )
-    }
 
   /**
     * Primarily converts the RawChannelSiteBuilding from the current RawChannel if RawChannelSitebuilding is defined
@@ -230,22 +208,9 @@ class RawToApiConverter @Inject()(inheritanceCalculator: InheritanceCalculator) 
       pathForAdTag = Some(calculatePathForAdTag(rawChannel)),
       pathForVideoAdTag = Some(calculatePathForVideoAdTag(rawChannel)),
       thirdParty = Some(thirdPartyCommercialFromRawChannelCommercial(rawChannel.config.commercial)),
-      adIndicator = rawChannel.config.header.map(_.adIndicator),
       showFallbackAds = Some(rawChannel.config.commercial.showFallbackAds),
       disableAdvertisement = Some(rawChannel.config.commercial.disableAdvertisement),
       isTrackingOnly = Some(rawChannel.config.commercial.isTrackingOnly)
-    )
-  }
-
-  @deprecated(message = "not needed anymore as soon as migration to sitebuilding is done", since = "5.0")
-  private[converter] def apiSponsoringConfigurationFromRawChannel(rawChannel: RawChannel): ApiSponsoringConfiguration = {
-    ApiSponsoringConfiguration(
-      name = rawChannel.config.sponsoring.logo,
-      logo = rawChannel.config.sponsoring.logo,
-      slogan = rawChannel.config.sponsoring.slogan,
-      hidden = Some(rawChannel.config.sponsoring.hidden),
-      link = rawChannel.config.sponsoring.link.map(ref => ApiReference(ref.label, ref.path)),
-      brandstation = rawChannel.config.sponsoring.brandstation
     )
   }
 

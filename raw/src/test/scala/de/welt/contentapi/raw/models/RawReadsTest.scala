@@ -21,43 +21,37 @@ class RawReadsTest extends PlaySpec {
     "ignore unknown properties for downward compatibility" in {
       val json: String =
         """{
-          |  "header": {
-          |    "logo": "foo.png"
+          |  "siteBuilding": {
+          |    "fields": {
+          |      "foo": "bar"
+          |    }
           |  },
           |  "unknown-foo-bar": {}
           |}""".stripMargin
       Json.parse(json)
         .validate[RawChannelConfiguration](rawChannelConfigurationReads)
         .asOpt
-        .flatMap(_.header) mustBe Some(RawChannelHeader(logo = Some("foo.png")))
+        .flatMap(_.siteBuilding) mustBe Some(RawChannelSiteBuilding(fields = Some(Map("foo" -> "bar"))))
     }
 
     "ignore known empty properties" in {
       val json: String =
         """{
-          |  "header": {
-          |    "logo": "foo.png"
-          |  },
           |  "siteBuilding": {}
           |}""".stripMargin
       Json.parse(json)
         .validate[RawChannelConfiguration](rawChannelConfigurationReads)
-        .asOpt
-        .flatMap(_.header) mustBe Some(RawChannelHeader(logo = Some("foo.png")))
+        .asOpt mustBe Some(RawChannelConfiguration())
     }
 
     "ignore known empty properties with empty values" in {
       val json: String =
         """{
-          |  "header": {
-          |    "logo": "foo.png"
-          |  },
           |  "siteBuilding": {"fields": {}}
           |}""".stripMargin
       Json.parse(json)
         .validate[RawChannelConfiguration](rawChannelConfigurationReads)
-        .asOpt
-        .flatMap(_.header) mustBe Some(RawChannelHeader(logo = Some("foo.png")))
+        .asOpt mustBe Some(RawChannelConfiguration())
     }
   }
 
@@ -107,30 +101,6 @@ class RawReadsTest extends PlaySpec {
       Json.parse(emptyJson)
         .validate[RawChannelTaboolaCommercial](rawChannelTaboolaCommercialReads)
         .asOpt mustBe Some(RawChannelTaboolaCommercial())
-    }
-
-  }
-
-  "RawChannelHeaderReads" must {
-
-    "create RawChannelHeader from empty json by using default constructor values" in {
-      Json.parse(emptyJson)
-        .validate[RawChannelHeader](rawChannelHeaderReads)
-        .asOpt mustBe Some(RawChannelHeader())
-    }
-
-    "fill optional fields" in {
-      val json: String = """{ "logo": "foo", "slogan": "foo", "label": "foo" }"""
-      Json.parse(json)
-        .validate[RawChannelHeader](rawChannelHeaderReads)
-        .asOpt mustBe Some(RawChannelHeader(logo = Some("foo"), slogan = Some("foo"), label = Some("foo")))
-    }
-
-    "map Some('') to None" in {
-      val json: String = """{"logo": "", "slogan": "", "label": "", "sectionReferences": [], "hidden": false, "adIndicator": false}"""
-      Json.parse(json)
-        .validate[RawChannelHeader](rawChannelHeaderReads)
-        .asOpt mustBe Some(RawChannelHeader(logo = None, slogan = None, label = None, sectionReferences = None))
     }
 
   }
