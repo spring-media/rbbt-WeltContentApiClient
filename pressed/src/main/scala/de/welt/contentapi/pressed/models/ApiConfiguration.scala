@@ -151,3 +151,19 @@ case class ApiHeaderConfiguration(label: Option[String] = None,
 case class ApiThemeConfiguration(name: Option[String] = None, fields: Option[Map[String, String]] = None) {
   lazy val unwrappedFields: Map[String, String] = fields.getOrElse(Map.empty[String, String])
 }
+
+/**
+  * Configuration for a stage with a tracking report fallback.
+  * With this config we have the possibility to deliver articles from a tracking report when the regular stage has no articles.
+  * e.g.: If a curated stage has no articles we want to deliver articles from a tracking report instead.
+  *
+  * @param trackingReportName the name of the configured report in Adobe, e.g. "api_most_article_comments_5"
+  * @param label              label to be rendered above the stage, e.g. name of channel
+  * @param link               link for the label
+  * @param trackingName       is used for tracking clicks on articles in stages
+  */
+case class ApiTrackingReportFallbackConfiguration(trackingReportName: Option[String] = None,
+                                                  label: Option[String] = None,
+                                                  link: Option[ApiReference] = None,
+                                                  trackingName: Option[String] = None) {
+}

@@ -311,6 +311,18 @@ case class RawChannelMetaRobotsTag(noIndex: Option[Boolean] = None, noFollow: Op
   */
 case class RawSectionReference(label: Option[String] = None, path: Option[String] = None)
 
+/**
+  * When a curated stage is empty we want to have the possibility to deliver articles from a tracking report.
+  *
+  * @param trackingReportName the name of the configured report in Adobe, e.g. "api_most_article_comments_5"
+  * @param label              label to be rendered above the stage, e.g. name of channel
+  * @param link               link for the label
+  * @param trackingName       is used for tracking clicks on articles in stages
+  */
+case class RawTrackingReportFallbackConfig(trackingReportName: Option[String] = None,
+                                           label: Option[String] = None,
+                                           link: Option[RawSectionReference] = None,
+                                           trackingName: Option[String] = None)
 
 /**
   * A channel or a stage can be sponsored by a partner or brand with a special logo + slogan. This is mostly part of the
@@ -462,14 +474,15 @@ case class RawChannelStageCommercial(override val index: Int,
   * Curated Stage to be configured in CMCF.
   * Allows placing curated Stages from Papyrus on Channels
   *
-  * @param curatedSectionMapping the id of the curated section in Papyrus, e.g. "frontpage" or "icon"
-  * @param curatedStageMapping   the id of the curated stage within a curated section, e.g. "sport", "uhren", or "iconist"
-  * @param layout                optional layout name to be used for the stage, e.g. "classic-ressort" else will be default layout
-  * @param label                 optional label to be rendered above the stage, e.g. name of channel
-  * @param logo                  optional logo to be rendered next to the label, e.g. `/icon/` stage logos.
-  * @param sponsoring            optional sponsoring consisting of a linked logo and/or slogan
-  * @param references            optional Link(s) to external or internal, absolute or relative URLs
-  * @param hideCuratedStageLabel don't show the label that curation api returns (allow re-usage of stages)
+  * @param curatedSectionMapping  the id of the curated section in Papyrus, e.g. "frontpage" or "icon"
+  * @param curatedStageMapping    the id of the curated stage within a curated section, e.g. "sport", "uhren", or "iconist"
+  * @param layout                 optional layout name to be used for the stage, e.g. "classic-ressort" else will be default layout
+  * @param label                  optional label to be rendered above the stage, e.g. name of channel
+  * @param logo                   optional logo to be rendered next to the label, e.g. `/icon/` stage logos.
+  * @param sponsoring             optional sponsoring consisting of a linked logo and/or slogan
+  * @param references             optional Link(s) to external or internal, absolute or relative URLs
+  * @param hideCuratedStageLabel  don't show the label that curation api returns (allow re-usage of stages)
+  * @param trackingReportFallback optional config which can be used as a fallback when curated stage has no articles
   */
 case class RawChannelStageCurated(override val index: Int,
                                   override val `type`: String = RawChannelStage.TypeCurated,
@@ -483,7 +496,8 @@ case class RawChannelStageCurated(override val index: Int,
                                   logo: Option[String],
                                   sponsoring: Option[RawSponsoringConfig] = None,
                                   references: Option[Seq[RawSectionReference]] = None,
-                                  hideCuratedStageLabel: Option[Boolean] = None) extends RawChannelStage {
+                                  hideCuratedStageLabel: Option[Boolean] = None,
+                                  trackingReportFallback: Option[RawTrackingReportFallbackConfig] = None) extends RawChannelStage {
   lazy val unwrappedReferences: Seq[RawSectionReference] = references.getOrElse(Nil)
 
   def hasValues(section: String, stage: String) = this.curatedSectionMapping == section && this.curatedStageMapping == stage

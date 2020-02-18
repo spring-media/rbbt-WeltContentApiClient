@@ -192,7 +192,15 @@ class RawWritesTest extends PlaySpec {
         references = Some(Seq(
           RawSectionReference(label = Some("ref-label"), path = Some("ref-path"))
         )),
-        hideCuratedStageLabel = Some(true)
+        hideCuratedStageLabel = Some(true),
+        trackingReportFallback = Some(
+          RawTrackingReportFallbackConfig(
+            trackingReportName = Some("api_most_sport_article_comments_5"),
+            label = Some("tracking-report-fallback-label"),
+            link = Some(RawSectionReference(path = Some("tracking-report-fallback-link"))),
+            trackingName = Some("tracking-report-fallback-tracking-name")
+          )
+        )
       )
 
       val expectedJson: String =
@@ -209,11 +217,23 @@ class RawWritesTest extends PlaySpec {
            |  "layout" : "curated-layout",
            |  "label" : "curated-label",
            |  "logo" : "curated-logo",
+           |  "sponsoring" : {
+           |    "slogan" : "slogan",
+           |    "hidden" : false
+           |  },
            |  "references" : [ {
            |    "label" : "ref-label",
            |    "path" : "ref-path"
            |  } ],
-           |  "hideCuratedStageLabel" : true
+           |  "hideCuratedStageLabel" : true,
+           |  "trackingReportFallback" : {
+           |    "trackingReportName" : "api_most_sport_article_comments_5",
+           |    "label" : "tracking-report-fallback-label",
+           |    "link" : {
+           |      "path" : "tracking-report-fallback-link"
+           |    },
+           |    "trackingName" : "tracking-report-fallback-tracking-name"
+           |  }
            |}""".stripMargin
     }
 
@@ -227,10 +247,8 @@ class RawWritesTest extends PlaySpec {
        |  Otherwise it's possible to override it with any value. (This is a glitch in PlayJson.Writes)""".stripMargin in new MaximalCuratedStage {
       val json: JsValue = Json.toJson[RawChannelStageCurated](actualRawCuratedStage)(rawChannelStageCuratedWrites)
 
-      val stageType: String = (json \ "type").as[String]
-      stageType mustBe "curated"
+      Json.prettyPrint(json) mustBe expectedJson
     }
-
   }
 
   "RawChannelStageConfiguredId Reads and Writes" must {

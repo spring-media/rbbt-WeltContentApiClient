@@ -1,5 +1,12 @@
 # Changelog
 
+## 8.1 (2020-02-11)
+
+### Changes
+- [RAW] Added `RawTrackingReportFallbackConfig` for delivering articles from a tracking report as a fallback (e.g. empty Papyrus stage)
+- [API] Added `ApiTrackingReportFallbackConfiguration` as the API representation of `RawTrackingReportFallbackConfig`
+- [RAW] Added optional field `trackingReportFallback` as part of `RawChannelStageCurated`
+
 ## 8.0 (2019-12-05)
 - Cleanup Release: use SiteBuilding
 - [API] Model `RawSponsoringConfig` is now only used for sponsoring above a stage (e.g. bwin) 

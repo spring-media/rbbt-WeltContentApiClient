@@ -18,6 +18,8 @@ object RawFormats {
     Format[RawChannelMetadata](rawChannelMetadataReads, rawChannelMetadataWrites)
   implicit lazy val rawSectionReferenceFormat: Format[RawSectionReference] =
     Format[RawSectionReference](rawSectionReferenceReads, rawSectionReferenceWrites)
+  implicit lazy val rawTrackingReportFallbackConfigFormat: Format[RawTrackingReportFallbackConfig] =
+    Format[RawTrackingReportFallbackConfig](rawTrackingReportFallbackConfigReads, rawTrackingReportFallbackConfigWrites)
   implicit lazy val rawChannelSponsoringFormat: Format[RawSponsoringConfig] =
     Format[RawSponsoringConfig](rawChannelSponsoringReads, rawChannelSponsoringWrites)
   implicit lazy val rawAssetFormat: Format[RawAsset] =
@@ -72,6 +74,7 @@ object RawReads {
   implicit lazy val rawChannelMetaRobotsTagReads: Reads[RawChannelMetaRobotsTag] = Json.reads[RawChannelMetaRobotsTag]
   implicit lazy val rawChannelMetadataReads: Reads[RawChannelMetadata] = Json.reads[RawChannelMetadata]
   implicit lazy val rawSectionReferenceReads: Reads[RawSectionReference] = Json.reads[RawSectionReference]
+  implicit lazy val rawTrackingReportFallbackConfigReads: Reads[RawTrackingReportFallbackConfig] = Json.reads[RawTrackingReportFallbackConfig]
   implicit lazy val rawChannelSponsoringReads: Reads[RawSponsoringConfig] = new Reads[RawSponsoringConfig] {
     private lazy val defaults: RawSponsoringConfig = RawSponsoringConfig()
     override def reads(json: JsValue): JsResult[RawSponsoringConfig] = json match {
@@ -276,6 +279,7 @@ object RawWrites {
   implicit lazy val rawChannelMetaRobotsTagWrites: Writes[RawChannelMetaRobotsTag] = Json.writes[RawChannelMetaRobotsTag]
   implicit lazy val rawChannelMetadataWrites: Writes[RawChannelMetadata] = Json.writes[RawChannelMetadata]
   implicit lazy val rawSectionReferenceWrites: Writes[RawSectionReference] = Json.writes[RawSectionReference]
+  implicit lazy val rawTrackingReportFallbackConfigWrites: Writes[RawTrackingReportFallbackConfig] = Json.writes[RawTrackingReportFallbackConfig]
   implicit lazy val rawChannelSponsoringWrites: Writes[RawSponsoringConfig] = Json.writes[RawSponsoringConfig]
   implicit lazy val rawAssetWrites: Writes[RawAsset] = Json.writes[RawAsset]
   implicit lazy val rawElementWrites: Writes[RawElement] = Json.writes[RawElement]
@@ -319,7 +323,8 @@ object RawWrites {
       (__ \ "logo").writeNullable[String] and
       (__ \ "sponsoring").writeNullable[RawSponsoringConfig] and
       (__ \ "references").writeNullable[Seq[RawSectionReference]] and
-      (__ \ "hideCuratedStageLabel").writeNullable[Boolean]
+      (__ \ "hideCuratedStageLabel").writeNullable[Boolean] and
+      (__ \ "trackingReportFallback").writeNullable[RawTrackingReportFallbackConfig]
     ) (unlift(RawChannelStageCurated.unapply))
 
   implicit lazy val rawChannelStageConfiguredIdWrites: Writes[RawChannelStageConfiguredId] = (
