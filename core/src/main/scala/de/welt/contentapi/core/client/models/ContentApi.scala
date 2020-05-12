@@ -2,7 +2,6 @@ package de.welt.contentapi.core.client.models
 
 import java.time.Instant
 
-import de.welt.contentapi.utils.Loggable
 import de.welt.contentapi.utils.Strings._
 import play.api.Logger
 
@@ -15,7 +14,7 @@ case class ApiContentSearch(`type`: MainTypeParam = MainTypeParam(),
                             homeSection: HomeSectionParam = HomeSectionParam(),
                             sectionExcludes: SectionExcludes = SectionExcludes(),
                             flag: FlagParam = FlagParam(),
-                            tag: TagParam = TagParam(),
+                            tag: TagParam = AnyTagParam(),
                             page: PageParam = PageParam(),
                             pageSize: PageSizeParam = PageSizeParam(),
                             fromDate: FromDateParam = FromDateParam(),
@@ -57,9 +56,13 @@ sealed trait AbstractParam[T] {
   def asTuple: Option[(String, String)] = valueToStringOpt(value).map { v => (name, v) }
 }
 
+object Operator {
+  val Or = "|"
+  val And = ","
+}
+
 protected abstract class ListParam[T](override val value: List[T]) extends AbstractParam[List[T]] {
-  // conjunction by default
-  def operator: String = ","
+  def operator: String = Operator.And
 
   override def valueToStringOpt: List[T] => Option[String] = {
     case Nil => None
@@ -124,7 +127,7 @@ case class SectionParam(override val value: List[String] = Nil) extends ListPara
 
   override val name: String = "sectionPath"
 
-  override def operator: String = "|" // disjunction by for sectionPath
+  override def operator: String = Operator.Or
 }
 
 case class HomeSectionParam(override val value: List[String] = Nil) extends ListParam[String](value) {
@@ -135,7 +138,7 @@ case class HomeSectionParam(override val value: List[String] = Nil) extends List
 
   override val name: String = "sectionHome"
 
-  override def operator: String = "|" // disjunction by for sectionHome
+  override def operator: String = Operator.Or
 }
 
 case class SectionExcludes(override val value: List[String] = Nil) extends ListParam[String](value) {
@@ -156,10 +159,18 @@ case class FlagParam(override val value: List[String] = Nil) extends ListParam[S
   override val name: String = "flag"
 }
 
-case class TagParam(override val value: List[String] = Nil) extends ListParam[String](value) {
+abstract class TagParam(override val value: List[String] = Nil) extends ListParam[String](value) {
   override val name: String = "tag"
 
-  override def operator: String = "|" // disjunction by for tags
+  override def operator: String = Operator.Or
+}
+
+case class AnyTagParam(override val value: List[String] = Nil) extends TagParam(value) {
+  override def operator: String = Operator.Or
+}
+
+case class AllTagParam(override val value: List[String] = Nil) extends TagParam(value) {
+  override def operator: String = Operator.And
 }
 
 case class PageSizeParam(override val value: Int = Int.MinValue) extends ValueParam[Int](value) {
