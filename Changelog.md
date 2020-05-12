@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.2 (2020-05-11)
+- [API] added field `tagsOperator`
+
 ## 8.1 (2020-02-11)
 
 ### Changes

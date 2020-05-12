@@ -77,6 +77,10 @@ class ApiPressedContentTest extends PlaySpec {
       apiPressedContent.relatedByRole() mustBe empty
     }
 
+    "return content with empty tagsOperator" in {
+      apiPressedContent.content.tagsOperator mustBe empty
+    }
+
     "filter related by roles" in {
       apiPressedContent.relatedContent must contain allOf(related, playlistRelated)
       apiPressedContent.relatedMoreLikeThis must contain (mlt)
