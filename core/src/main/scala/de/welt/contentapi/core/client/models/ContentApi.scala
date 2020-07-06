@@ -6,8 +6,8 @@ import de.welt.contentapi.utils.Strings._
 import play.api.Logger
 
 /**
-  * Wrapper to configure a search against the content API. For params and values see https://doug-ecs-production.up.welt.de/#_request_parameters
-  */
+ * Wrapper to configure a search against the content API. For params and values see https://doug-ecs-production.up.welt.de/#_request_parameters
+ */
 case class ApiContentSearch(`type`: MainTypeParam = MainTypeParam(),
                             subType: SubTypeParam = SubTypeParam(),
                             section: SectionParam = SectionParam(),
@@ -19,40 +19,47 @@ case class ApiContentSearch(`type`: MainTypeParam = MainTypeParam(),
                             pageSize: PageSizeParam = PageSizeParam(),
                             fromDate: FromDateParam = FromDateParam(),
                             id: IdParam = IdParam(),
-                            themePageId: ThemePageIdParam = ThemePageIdParam()
+                            themePageId: ThemePageIdParam = ThemePageIdParam(),
+                            includeFields: IncludeFieldsParam = IncludeFieldsParam()
                            ) {
-  protected[models] def allParams = Seq(`type`, subType, section, homeSection, sectionExcludes, flag, tag, pageSize, page, fromDate, id, themePageId)
+  protected[models] def allParams = Seq(
+    id, `type`, subType,
+    section, homeSection, sectionExcludes,
+    flag, tag,
+    pageSize, page, fromDate,
+    themePageId, includeFields
+  )
 
   /**
-    * Returns tuples of params ant their respective values {{{type -> news}}}.
-    * If it is a list parameter, the values are joined according to the defined operator (`,` or `|)`: {{{sectionHome -> section1,section2}}}
-    *
-    * @return parameters as tuple to be used directly with [[play.api.libs.ws.WSRequest.withQueryStringParameters()]]
-    */
+   * Returns tuples of params and their respective values {{{type -> news}}}.
+   * If it is a list parameter, the values are joined according to the defined operator (`,` or `|)`: {{{sectionHome -> section1,section2}}}
+   *
+   * @return parameters as tuple to be used directly with [[play.api.libs.ws.WSRequest.withQueryStringParameters()]]
+   */
   def getAllParamsUnwrapped: Seq[(String, String)] = allParams.flatMap(_.asTuple)
 }
 
 sealed trait AbstractParam[T] {
 
   /**
-    * @return parameter name
-    */
+   * @return parameter name
+   */
   def name: String
 
   /**
-    * @return parameter value(s)
-    */
+   * @return parameter value(s)
+   */
   def value: T
 
   /**
-    * @return [[scala.Option]] wrapped value if value was validated (according to [[PrimitiveParam.valueToStringOpt]])
-    *         <br/> [[scala.None]] otherwise
-    */
+   * @return [[scala.Option]] wrapped value if value was validated (according to [[PrimitiveParam.valueToStringOpt]])
+   *         <br/> [[scala.None]] otherwise
+   */
   def valueToStringOpt: T => Option[String]
 
   /**
-    * @return tuple of key and [[valueToStringOpt]]
-    */
+   * @return tuple of key and [[valueToStringOpt]]
+   */
   def asTuple: Option[(String, String)] = valueToStringOpt(value).map { v => (name, v) }
 }
 
@@ -80,10 +87,10 @@ protected abstract class ValueParam[T](override val value: T) extends AbstractPa
 
 private case class PrimitiveParam[T]() {
   /**
-    * Validate some basic types and return [[scala.None]] if value is invalid or empty
-    *
-    * @return
-    */
+   * Validate some basic types and return [[scala.None]] if value is invalid or empty
+   *
+   * @return
+   */
   //noinspection ScalaStyle
   def valueToStringOpt: T => Option[String] = {
     case s: String if containsTextContent(s) => Some(stripWhiteSpaces(s))
@@ -191,6 +198,49 @@ case class ThemePageIdParam(override val value: String = "") extends ValueParam[
 
 case class IdParam(override val value: List[String] = Nil) extends ListParam[String](value) {
   override val name: String = "id"
+}
+
+case class IncludeFieldsParam(override val value: List[String] = Nil) extends ListParam[String](value) {
+  override val name: String = "fields"
+}
+
+object IncludeFieldsParam {
+  val IdField = "id"
+  val WebUrlField = "webUrl"
+  val TypeField = "type"
+  val SubTypeField = "subType"
+
+  val OnwardField = "onward"
+  val FieldsField = "fields"
+  val ElementsField = "elements"
+
+  val SectionsField = "sections"
+
+  val TagsField = "tags"
+  val AuthorsField = "authors"
+  val KeywordsField = "keywords"
+
+  def apply(includeFields: String*): IncludeFieldsParam = if (includeFields.isEmpty) {
+    IncludeFieldsParam(Nil)
+  } else {
+    IncludeFieldsParam(
+      List(WebUrlField, TypeField)
+        .appendedAll(includeFields)
+        .filterNot(_.isBlank)
+        .distinct
+    )
+  }
+
+  /**
+   * @param innerFields list of field/key names for [[de.welt.contentapi.core.models.ApiContent ApiContent]]`.fields`
+   *                    (i.e. `publicationDate`, `headline` ...)
+   * @return prefixed field/key nameds (i.e. `fields.publicationDate,fields.headline` ...)
+   */
+  def fieldsPrefixed(innerFields: String*): String =
+    innerFields
+      .filterNot(_.isBlank)
+      .map(includeField => s"$FieldsField.$includeField")
+      .mkString(Operator.And)
 }
 
 sealed trait Datasource {

@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.2 (2020-07-03)
+- [SEARCH] added parameter `fields` for selecting response fields
+
 ## 8.2 (2020-05-11)
 - [API] added field `tagsOperator`
 
