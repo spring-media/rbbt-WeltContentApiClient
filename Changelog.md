@@ -1,5 +1,9 @@
 # Changelog
 
+### 8.3
+- [RAW] added optional field `limit` as part of `RawTrackingReportFallbackConfig`
+- [API] added optional field `limit` as part of `ApiTrackingReportFallbackConfiguration`
+
 ## 8.2 (2020-07-03)
 - [SEARCH] added parameter `fields` for selecting response fields
 

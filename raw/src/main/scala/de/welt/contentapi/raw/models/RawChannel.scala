@@ -318,11 +318,13 @@ case class RawSectionReference(label: Option[String] = None, path: Option[String
   * @param label              label to be rendered above the stage, e.g. name of channel
   * @param link               link for the label
   * @param trackingName       is used for tracking clicks on articles in stages
+  * @param limit              is used for limiting the number of articles
   */
 case class RawTrackingReportFallbackConfig(trackingReportName: Option[String] = None,
                                            label: Option[String] = None,
                                            link: Option[RawSectionReference] = None,
-                                           trackingName: Option[String] = None)
+                                           trackingName: Option[String] = None,
+                                           limit: Option[Int] = None)
 
 /**
   * A channel or a stage can be sponsored by a partner or brand with a special logo + slogan. This is mostly part of the

@@ -198,7 +198,8 @@ class RawWritesTest extends PlaySpec {
             trackingReportName = Some("api_most_sport_article_comments_5"),
             label = Some("tracking-report-fallback-label"),
             link = Some(RawSectionReference(path = Some("tracking-report-fallback-link"))),
-            trackingName = Some("tracking-report-fallback-tracking-name")
+            trackingName = Some("tracking-report-fallback-tracking-name"),
+            limit = Some(5)
           )
         )
       )
@@ -232,7 +233,8 @@ class RawWritesTest extends PlaySpec {
            |    "link" : {
            |      "path" : "tracking-report-fallback-link"
            |    },
-           |    "trackingName" : "tracking-report-fallback-tracking-name"
+           |    "trackingName" : "tracking-report-fallback-tracking-name",
+           |    "limit" : 5
            |  }
            |}""".stripMargin
     }

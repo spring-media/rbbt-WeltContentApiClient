@@ -161,9 +161,11 @@ case class ApiThemeConfiguration(name: Option[String] = None, fields: Option[Map
   * @param label              label to be rendered above the stage, e.g. name of channel
   * @param link               link for the label
   * @param trackingName       is used for tracking clicks on articles in stages
+  * @param limit              is used for limiting the number of articles
   */
 case class ApiTrackingReportFallbackConfiguration(trackingReportName: Option[String] = None,
                                                   label: Option[String] = None,
                                                   link: Option[ApiReference] = None,
-                                                  trackingName: Option[String] = None) {
+                                                  trackingName: Option[String] = None,
+                                                  limit: Option[Int] = None) {
 }
