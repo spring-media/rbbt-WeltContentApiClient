@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.4
+- added theme service
+
 ### 8.3
 - [RAW] added optional field `limit` as part of `RawTrackingReportFallbackConfig`
 - [API] added optional field `limit` as part of `ApiTrackingReportFallbackConfiguration`
