@@ -18,7 +18,7 @@ import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class ThemeServiceTest extends PlaySpec with MockitoSugar {
+class SummaryThemeServiceTest extends PlaySpec with MockitoSugar {
 
   trait TestScope {
 
@@ -50,14 +50,14 @@ class ThemeServiceTest extends PlaySpec with MockitoSugar {
   "ThemeService" should {
 
     "provide list of summaries by letter" in new TestScope {
-      val service = new ThemeServiceImpl(mockWsClient, metricsMock, executionContext)
+      val service = new SummaryThemeServiceImpl(mockWsClient, metricsMock, executionContext)
 
       when(responseMock.status).thenReturn(Status.OK)
       when(responseMock.json).thenReturn(JsArray(Seq(
         JsObject(Seq("path" -> JsString("p1"), "id" -> JsString("id1"), "title" -> JsString("title1")))
       )))
 
-      val res: Seq[ThemeSummary] = Await.result(service.findSummaries(letter = 'a'), Duration.Inf)
+      val res: Seq[ThemeSummary] = Await.result(service.find(letter = 'a'), Duration.Inf)
       assert(res == Seq(ThemeSummary(path = "p1", id = "id1", title = "title1")))
 
       verify(mockRequest).withQueryStringParameters(Seq("letter" -> "a"): _*)

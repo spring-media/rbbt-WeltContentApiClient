@@ -42,6 +42,7 @@ object PressedReads {
     case err@_ => JsError(s"expected js-object, but was $err")
   }
 
+  implicit lazy val detailsResponseItemReads: Reads[ThemeDetails] = Json.reads[ThemeDetails]
   implicit lazy val apiPressedContentResponseReads: Reads[ApiPressedContentResponse] = Json.reads[ApiPressedContentResponse]
   implicit lazy val apiTeaserReads: Reads[ApiTeaser] = Json.reads[ApiTeaser]
   implicit lazy val apiStageReads: Reads[ApiStage] = Json.reads[ApiStage]

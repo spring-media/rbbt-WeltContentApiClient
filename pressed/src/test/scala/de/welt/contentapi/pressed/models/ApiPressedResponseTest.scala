@@ -34,7 +34,7 @@ class ApiPressedResponseTest extends PlaySpec {
           """.stripMargin
       }
       "accept fixture" in new ReadsFixture {
-        PressedReads.apiPressedContentResponseReads.reads(Json.parse(json)) mustBe an[JsSuccess[ApiPressedContentResponse]]
+        PressedReads.detailsResponseItemReads.reads(Json.parse(json)) mustBe an[JsSuccess[ApiPressedContentResponse]]
       }
       "contains expected data" in new ReadsFixture {
         val withPaging = response.copy(
@@ -44,7 +44,7 @@ class ApiPressedResponseTest extends PlaySpec {
           currentPage = Some(1),
           orderBy = Some("random-ordering")
         )
-        PressedReads.apiPressedContentResponseReads.reads(Json.parse(json)).get mustBe withPaging
+        PressedReads.detailsResponseItemReads.reads(Json.parse(json)).get mustBe withPaging
       }
     }
 

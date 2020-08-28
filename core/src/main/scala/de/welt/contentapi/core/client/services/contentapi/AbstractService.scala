@@ -55,10 +55,12 @@ abstract class AbstractService[T](ws: WSClient,
     * report the breaker state as a gauge to metrics, only if breaker is enabled
     */
   if (config.circuitBreaker.enabled) {
-    metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
-      override def getValue: Int = breakerState()
-    })
-    log.info(s"Circuit Breaker enabled for ${config.serviceName}")
+    Try {
+      metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
+        override def getValue: Int = breakerState()
+      })
+      log.info(s"Circuit Breaker enabled for ${config.serviceName}")
+    }.failed.foreach(ex => log.info(s"Circuit Breaker NOT enabled for ${config.serviceName}"))
   } else {
     log.info(s"Circuit Breaker NOT enabled for ${config.serviceName}")
   }
@@ -95,11 +97,36 @@ abstract class AbstractService[T](ws: WSClient,
                                parameters: Seq[(String, String)] = Nil,
                                headers: Seq[(String, String)] = Nil,
                                body: Option[U] = None)
+                              (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] =
+    executeInternal(config.endpoint, urlArguments, parameters, headers, body)
+
+  /**
+   * @param endpoint                relative service endpoint
+   * @param urlArguments            string interpolation arguments for endpoint. e.g. /foo/%s/bar/%s see [[java.lang.String#format}]]
+   * @param parameters              URL parameters to be sent with the request
+   * @param headers                 optional http headers to be sent to the backend
+   * @param body                    optional http body to be sent (e.g. for PUT and POST requests)
+   * @param forwardedRequestHeaders forwarded request headers from the controller e.g. API key
+   * @return
+   */
+  def executeWithEndpoint[U: BodyWritable](endpoint: String,
+                                           urlArguments: Seq[String] = Nil,
+                                           parameters: Seq[(String, String)] = Nil,
+                                           headers: Seq[(String, String)] = Nil,
+                                           body: Option[U] = None)
+                              (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] =
+    executeInternal(endpoint, urlArguments, parameters, headers, body)
+
+  private def executeInternal[U: BodyWritable](endpoint: String,
+                                               urlArguments: Seq[String] = Nil,
+                                               parameters: Seq[(String, String)] = Nil,
+                                               headers: Seq[(String, String)] = Nil,
+                                               body: Option[U] = None)
                               (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] = {
 
     val context = initializeMetricsContext(config.serviceName)
 
-    val url: String = config.host + config.endpoint.format(urlArguments.map(stripWhiteSpaces).filter(_.nonEmpty): _*)
+    val url: String = config.host + endpoint.format(urlArguments.map(stripWhiteSpaces).filter(_.nonEmpty): _*)
 
     val nonEmptyParameters = parameters.map { case (k, v) => k -> v.trim }.filter(_._2.nonEmpty)
 
