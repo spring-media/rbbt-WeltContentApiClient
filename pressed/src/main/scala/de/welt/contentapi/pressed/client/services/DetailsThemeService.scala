@@ -31,7 +31,7 @@ trait DetailsThemeService {
 class DetailsThemeServiceIml @Inject()(ws: WSClient,
                                     metrics: Metrics,
                                     capi: CapiExecutionContext)
-  extends AbstractService[ThemeDetails](ws, metrics, ServiceConfiguration("theme_service"), capi)
+  extends AbstractService[ThemeDetails](ws, metrics, ServiceConfiguration("theme_details_service"), capi)
     with DetailsThemeService {
 
   import AbstractService.implicitConversions._
@@ -43,21 +43,20 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
 
 
   override def find(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] = {
-    val detailsFuture: Future[ThemeDetails] = executeWithEndpoint(
-      endpoint = "/themes/%s",
+    val detailsFuture: Future[ThemeDetails] = execute(
       urlArguments = Seq(path),
       parameters = Seq("page" -> page.toString, "pageSize" -> pageSize.toString)
     )
 
     detailsFuture.map(details => ApiPressedContentResponse(
-      source = "nevermind",
+      source = "theme-service",
       total = Some(details.total),
       pages = Some(details.pages),
       pageSize = Some(details.pageSize),
       currentPage = Some(details.currentPage),
       result = ApiPressedContent(
         content = details.content,
-        related = Some(details.related.map(relatedArticle => ApiPressedContent(content = relatedArticle.copy(roles = Some(List("more-from-theme-page"))))))
+        related = Some(details.related.map(relatedArticle => ApiPressedContent(content = relatedArticle)))
       )
     ))(capi)
   }

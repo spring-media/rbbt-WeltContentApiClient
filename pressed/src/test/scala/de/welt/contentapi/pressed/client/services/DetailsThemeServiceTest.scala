@@ -4,21 +4,22 @@ import akka.actor.ActorSystem
 import com.codahale.metrics.Timer.Context
 import com.kenshoo.play.metrics.Metrics
 import de.welt.contentapi.core.client.services.CapiExecutionContext
-import de.welt.contentapi.pressed.models.ThemeSummary
+import de.welt.contentapi.core.models.ApiContent
+import de.welt.contentapi.pressed.models.{ApiPressedContent, ApiPressedContentResponse}
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.http.Status
-import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString}
 import play.api.libs.ws.ahc.AhcWSRequest
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class SummaryThemeServiceTest extends PlaySpec with MockitoSugar {
+class DetailsThemeServiceTest extends PlaySpec with MockitoSugar {
 
   trait TestScope {
 
@@ -46,21 +47,38 @@ class SummaryThemeServiceTest extends PlaySpec with MockitoSugar {
     when(mockWsClient.url(anyString)).thenReturn(mockRequest)
   }
 
+  "ThemeDetailsService" should {
 
-  "ThemeSummaryService" should {
-
-    "provide list of summaries by letter" in new TestScope {
-      val service = new SummaryThemeServiceImpl(mockWsClient, metricsMock, executionContext)
+    "provide content and related data by theme path" in new TestScope {
+      val service = new DetailsThemeServiceIml(mockWsClient, metricsMock, executionContext)
 
       when(responseMock.status).thenReturn(Status.OK)
-      when(responseMock.json).thenReturn(JsArray(Seq(
-        JsObject(Seq("path" -> JsString("p1"), "id" -> JsString("id1"), "title" -> JsString("title1")))
-      )))
+      when(responseMock.json).thenReturn(JsObject(
+        Seq(
+          "currentPage" -> JsNumber(1),
+          "pages" -> JsNumber(1),
+          "pageSize" -> JsNumber(1),
+          "total" -> JsNumber(1),
+          "content" -> JsObject(Seq("webUrl" -> JsString(""), "type" -> JsString(""))),
+          "related" -> JsArray()
+        )
+      ))
 
-      val res: Seq[ThemeSummary] = Await.result(service.find(letter = 'a'), Duration.Inf)
-      assert(res == Seq(ThemeSummary(path = "p1", id = "id1", title = "title1")))
+      val res: ApiPressedContentResponse = Await.result(service.find("ard", page = 1, pageSize = 1), Duration.Inf)
+      assert(res == ApiPressedContentResponse(
+        result = ApiPressedContent(
+          content = ApiContent(webUrl = "", `type` = ""),
+          related = Some(Seq())
+        ),
+        source = "theme-service",
+        total = Some(1),
+        pages = Some(1),
+        pageSize = Some(1),
+        currentPage = Some(1)
+      ))
 
-      verify(mockRequest).withQueryStringParameters(Seq("letter" -> "a"): _*)
+      verify(mockRequest).withQueryStringParameters(Seq("page" -> "1", "pageSize" -> "1"): _*)
+      verify(mockWsClient).url("localhost/themes/ard")
     }
   }
 }

@@ -5,7 +5,7 @@ import com.kenshoo.play.metrics.Metrics
 import de.welt.contentapi.core.client.services.CapiExecutionContext
 import de.welt.contentapi.core.client.services.configuration.ServiceConfiguration
 import de.welt.contentapi.core.client.services.contentapi.AbstractService
-import de.welt.contentapi.pressed.models.{ApiPressedContentResponse, ThemeSummary}
+import de.welt.contentapi.pressed.models.ThemeSummary
 import play.api.libs.json.{Json, Reads}
 import play.api.libs.ws.{WSClient, WSResponse}
 
@@ -28,7 +28,7 @@ trait SummaryThemeService {
 class SummaryThemeServiceImpl @Inject()(ws: WSClient,
                                         metrics: Metrics,
                                         capi: CapiExecutionContext)
-  extends AbstractService[Seq[ThemeSummary]](ws, metrics, ServiceConfiguration("theme_service"), capi)
+  extends AbstractService[Seq[ThemeSummary]](ws, metrics, ServiceConfiguration("theme_summary_service"), capi)
     with SummaryThemeService {
 
   import AbstractService.implicitConversions._
@@ -39,5 +39,5 @@ class SummaryThemeServiceImpl @Inject()(ws: WSClient,
     response.json.result.validate[Seq[ThemeSummary]]
 
   override def find(letter: Char): Future[Seq[ThemeSummary]] =
-    executeWithEndpoint(endpoint = "/themes", parameters = Seq("letter" -> letter.toString))
+    execute(parameters = Seq("letter" -> letter.toString))
 }

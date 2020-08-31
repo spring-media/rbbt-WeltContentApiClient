@@ -23,28 +23,28 @@ abstract class AbstractService[T](ws: WSClient,
   extends Strings with Loggable with HeaderNames with Status {
 
   /**
-    * This provides a [[ServiceConfiguration]]. It will be used to
-    * configure the REST request.
-    *
-    * @return a [[ServiceConfiguration]]
-    */
+   * This provides a [[ServiceConfiguration]]. It will be used to
+   * configure the REST request.
+   *
+   * @return a [[ServiceConfiguration]]
+   */
   def config: ServiceConfiguration = this._config
 
   /**
-    * This must provide a function that maps a [[WSResponse]] to a [[Try]].
-    * Overriding this outside this trait is required, since the macro-mechanism that
-    * takes care of the response parsing does not work with generic types `T`
-    * b/c of different content types such as XML or JSON
-    *
-    * @return a [[Try]]
-    */
+   * This must provide a function that maps a [[WSResponse]] to a [[Try]].
+   * Overriding this outside this trait is required, since the macro-mechanism that
+   * takes care of the response parsing does not work with generic types `T`
+   * b/c of different content types such as XML or JSON
+   *
+   * @return a [[Try]]
+   */
   def validate: WSResponse => Try[T]
 
   protected[contentapi] lazy val breaker: CircuitBreaker = AbstractService.circuitBreaker(capi.actorSystem.scheduler, config, config.serviceName)
   /**
-    * `false` -> breaker will not open [this is a good exception, eg. 3xx and 4xx handled by custom-error-handler]
-    * `true` -> breaker might open and prevent further requests for some time [this is bad]
-    */
+   * `false` -> breaker will not open [this is a good exception, eg. 3xx and 4xx handled by custom-error-handler]
+   * `true` -> breaker might open and prevent further requests for some time [this is bad]
+   */
   private val circuitBreakerFailureFn: Try[T] => Boolean = {
     case Success(_) => false
     case Failure(_: HttpRedirectException) => false
@@ -52,27 +52,25 @@ abstract class AbstractService[T](ws: WSClient,
     case _ => true
   }
   /**
-    * report the breaker state as a gauge to metrics, only if breaker is enabled
-    */
+   * report the breaker state as a gauge to metrics, only if breaker is enabled
+   */
   if (config.circuitBreaker.enabled) {
-    Try {
-      metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
-        override def getValue: Int = breakerState()
-      })
-      log.info(s"Circuit Breaker enabled for ${config.serviceName}")
-    }.failed.foreach(ex => log.info(s"Circuit Breaker NOT enabled for ${config.serviceName}"))
+    metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
+      override def getValue: Int = breakerState()
+    })
+    log.info(s"Circuit Breaker enabled for ${config.serviceName}")
   } else {
     log.info(s"Circuit Breaker NOT enabled for ${config.serviceName}")
   }
 
   /**
-    * this circuit breaker's current state
-    *
-    * @return `disabled` = -1
-    *         `closed` = 0
-    *         `half-open` = 1
-    *         `open` = 2
-    */
+   * this circuit breaker's current state
+   *
+   * @return `disabled` = -1
+   *         `closed` = 0
+   *         `half-open` = 1
+   *         `open` = 2
+   */
   def breakerState(): Int = if (config.circuitBreaker.enabled) {
     if (breaker.isClosed) {
       0
@@ -86,22 +84,6 @@ abstract class AbstractService[T](ws: WSClient,
   }
 
   /**
-    * @param urlArguments            string interpolation arguments for endpoint. e.g. /foo/%s/bar/%s see [[java.lang.String#format}]]
-    * @param parameters              URL parameters to be sent with the request
-    * @param headers                 optional http headers to be sent to the backend
-    * @param body                    optional http body to be sent (e.g. for PUT and POST requests)
-    * @param forwardedRequestHeaders forwarded request headers from the controller e.g. API key
-    * @return
-    */
-  def execute[U: BodyWritable](urlArguments: Seq[String] = Nil,
-                               parameters: Seq[(String, String)] = Nil,
-                               headers: Seq[(String, String)] = Nil,
-                               body: Option[U] = None)
-                              (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] =
-    executeInternal(config.endpoint, urlArguments, parameters, headers, body)
-
-  /**
-   * @param endpoint                relative service endpoint
    * @param urlArguments            string interpolation arguments for endpoint. e.g. /foo/%s/bar/%s see [[java.lang.String#format}]]
    * @param parameters              URL parameters to be sent with the request
    * @param headers                 optional http headers to be sent to the backend
@@ -109,24 +91,15 @@ abstract class AbstractService[T](ws: WSClient,
    * @param forwardedRequestHeaders forwarded request headers from the controller e.g. API key
    * @return
    */
-  def executeWithEndpoint[U: BodyWritable](endpoint: String,
-                                           urlArguments: Seq[String] = Nil,
-                                           parameters: Seq[(String, String)] = Nil,
-                                           headers: Seq[(String, String)] = Nil,
-                                           body: Option[U] = None)
-                              (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] =
-    executeInternal(endpoint, urlArguments, parameters, headers, body)
-
-  private def executeInternal[U: BodyWritable](endpoint: String,
-                                               urlArguments: Seq[String] = Nil,
-                                               parameters: Seq[(String, String)] = Nil,
-                                               headers: Seq[(String, String)] = Nil,
-                                               body: Option[U] = None)
+  def execute[U: BodyWritable](urlArguments: Seq[String] = Nil,
+                               parameters: Seq[(String, String)] = Nil,
+                               headers: Seq[(String, String)] = Nil,
+                               body: Option[U] = None)
                               (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] = {
 
     val context = initializeMetricsContext(config.serviceName)
 
-    val url: String = config.host + endpoint.format(urlArguments.map(stripWhiteSpaces).filter(_.nonEmpty): _*)
+    val url: String = config.host + config.endpoint.format(urlArguments.map(stripWhiteSpaces).filter(_.nonEmpty): _*)
 
     val nonEmptyParameters = parameters.map { case (k, v) => k -> v.trim }.filter(_._2.nonEmpty)
 
@@ -165,11 +138,11 @@ abstract class AbstractService[T](ws: WSClient,
   }
 
   /**
-    * headers to be forwarded from client to server, e.g. the `X-Unique-Id` or `X-Amzn-Trace-Id`
-    *
-    * @param maybeHeaders [[Headers]] from the incoming [[play.api.mvc.Request]]
-    * @return tuples of type String for headers to be forwarded
-    */
+   * headers to be forwarded from client to server, e.g. the `X-Unique-Id` or `X-Amzn-Trace-Id`
+   *
+   * @param maybeHeaders [[Headers]] from the incoming [[play.api.mvc.Request]]
+   * @return tuples of type String for headers to be forwarded
+   */
   private def forwardHeaders(maybeHeaders: RequestHeaders): RequestHeaders = {
     maybeHeaders.collect {
       case tuple@("X-Unique-Id", _) => tuple
