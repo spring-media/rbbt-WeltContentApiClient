@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.5
+- separated theme service into 2 clients
+
 ## 8.4
 - added theme service
 
