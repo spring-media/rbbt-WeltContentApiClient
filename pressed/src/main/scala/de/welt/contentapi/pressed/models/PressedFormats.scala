@@ -1,6 +1,7 @@
 package de.welt.contentapi.pressed.models
 
 import de.welt.contentapi.core.models.ApiContent
+import de.welt.contentapi.pressed.client.services.ThemeDetails
 import de.welt.contentapi.pressed.models.StatusPhrase.StatusPhrase
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -42,6 +43,7 @@ object PressedReads {
     case err@_ => JsError(s"expected js-object, but was $err")
   }
 
+  implicit lazy val detailsResponseItemReads: Reads[ThemeDetails] = Json.reads[ThemeDetails]
   implicit lazy val apiPressedContentResponseReads: Reads[ApiPressedContentResponse] = Json.reads[ApiPressedContentResponse]
   implicit lazy val apiTeaserReads: Reads[ApiTeaser] = Json.reads[ApiTeaser]
   implicit lazy val apiStageReads: Reads[ApiStage] = Json.reads[ApiStage]

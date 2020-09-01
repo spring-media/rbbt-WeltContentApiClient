@@ -4,21 +4,20 @@ import akka.actor.ActorSystem
 import com.codahale.metrics.Timer.Context
 import com.kenshoo.play.metrics.Metrics
 import de.welt.contentapi.core.client.services.CapiExecutionContext
-import de.welt.contentapi.pressed.models.ThemeSummary
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{verify, when}
+import org.mockito.{Answers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.http.Status
-import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.libs.json.Json
 import play.api.libs.ws.ahc.AhcWSRequest
-import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class ThemeServiceTest extends PlaySpec with MockitoSugar {
+class SummaryThemeServiceTest extends PlaySpec with MockitoSugar {
 
   trait TestScope {
 
@@ -26,17 +25,10 @@ class ThemeServiceTest extends PlaySpec with MockitoSugar {
     implicit val executionContext: CapiExecutionContext = CapiExecutionContext(actorSystem, "akka.actor.default-dispatcher")
 
     val mockWsClient: WSClient = mock[WSClient]
-    val mockRequest: AhcWSRequest = mock[AhcWSRequest]
+    val mockRequest: AhcWSRequest = mock[AhcWSRequest](Mockito.withSettings().defaultAnswer(Answers.RETURNS_SELF))
     val responseMock: WSResponse = mock[WSResponse]
     val metricsMock: Metrics = mock[Metrics]
     val mockTimerContext: Context = mock[Context]
-
-    when(mockRequest.withHttpHeaders(ArgumentMatchers.any())).thenReturn(mockRequest)
-    when(mockRequest.addHttpHeaders(ArgumentMatchers.any())).thenReturn(mockRequest)
-    when(mockRequest.withQueryStringParameters(ArgumentMatchers.any())).thenReturn(mockRequest)
-    when(mockRequest.withAuth(anyString, anyString, ArgumentMatchers.eq(WSAuthScheme.BASIC))).thenReturn(mockRequest)
-    when(mockRequest.withBody(anyString)(ArgumentMatchers.any())).thenReturn(mockRequest)
-    when(mockRequest.withRequestTimeout(ArgumentMatchers.any())).thenReturn(mockRequest)
 
     when(mockRequest.execute(anyString())).thenReturn(Future {
       responseMock
@@ -47,15 +39,15 @@ class ThemeServiceTest extends PlaySpec with MockitoSugar {
   }
 
 
-  "ThemeService" should {
+  "SummaryThemeService" should {
 
     "provide list of summaries by letter" in new TestScope {
-      val service = new ThemeServiceImpl(mockWsClient, metricsMock, executionContext)
+      val service = new SummaryThemeServiceImpl(mockWsClient, metricsMock, executionContext)
 
       when(responseMock.status).thenReturn(Status.OK)
-      when(responseMock.json).thenReturn(JsArray(Seq(
-        JsObject(Seq("path" -> JsString("p1"), "id" -> JsString("id1"), "title" -> JsString("title1")))
-      )))
+      when(responseMock.json).thenReturn(
+        Json.arr(Json.obj("path" -> "p1", "id" -> "id1", "title" -> "title1"))
+      )
 
       val res: Seq[ThemeSummary] = Await.result(service.findSummaries(letter = 'a'), Duration.Inf)
       assert(res == Seq(ThemeSummary(path = "p1", id = "id1", title = "title1")))
