@@ -28,8 +28,9 @@ trait DetailsThemeService {
 
 @Singleton
 class DetailsThemeServiceIml @Inject()(ws: WSClient,
-                                    metrics: Metrics,
-                                    capi: CapiExecutionContext)
+                                       metrics: Metrics,
+                                       pressedContentService: PressedContentService,
+                                       capi: CapiExecutionContext)
   extends AbstractService[ThemeDetails](ws, metrics, ServiceConfiguration("theme_details_service"), capi)
     with DetailsThemeService {
 
@@ -53,7 +54,7 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
       currentPage = Some(details.currentPage),
       result = ApiPressedContent(
         content = details.content,
-        related = Some(details.related.map(relatedArticle => ApiPressedContent(content = relatedArticle)))
+        related = Some(details.related.map(pressedContentService.pressSingleApiContent))
       )
     ))(capi)
   }
