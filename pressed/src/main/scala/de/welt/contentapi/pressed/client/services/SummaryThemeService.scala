@@ -27,7 +27,7 @@ trait SummaryThemeService {
 class SummaryThemeServiceImpl @Inject()(ws: WSClient,
                                         metrics: Metrics,
                                         capi: CapiExecutionContext)
-  extends AbstractService[Seq[ThemeSummary]](ws, metrics, ServiceConfiguration("theme_summary_service"), capi)
+  extends AbstractService[Seq[ThemeSummary]](ws, metrics, ServiceConfiguration("theme_service"), capi)
     with SummaryThemeService {
 
   import AbstractService.implicitConversions._

@@ -48,7 +48,17 @@ case class CircuitBreakerSettings(enabled: Boolean = CircuitBreakerSettings.Enab
                                   maxFailures: Int = CircuitBreakerSettings.MaxFailures,
                                   callTimeout: FiniteDuration = CircuitBreakerSettings.CallTimeout,
                                   resetTimeout: FiniteDuration = CircuitBreakerSettings.ResetTimeout,
-                                  exponentialBackoff: FiniteDuration = CircuitBreakerSettings.ExponentialBackoff)
+                                  exponentialBackoff: FiniteDuration = CircuitBreakerSettings.ExponentialBackoff) {
+
+  override def toString: String =
+    s"""
+       |enabled: $enabled
+       |maxFailures: $maxFailures
+       |callTimeout: $callTimeout
+       |resetTimeout: $resetTimeout
+       |exponentialBackoff: $exponentialBackoff
+       |""".stripMargin
+}
 
 object CircuitBreakerSettings {
   val Enabled: Boolean = false

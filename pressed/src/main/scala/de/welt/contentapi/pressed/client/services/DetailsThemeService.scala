@@ -16,14 +16,24 @@ import scala.util.Try
 trait DetailsThemeService {
 
   /**
-   * Search for theme page article and related by path.
+   * Search for theme page article and related by theme path.
    *
-   * @param path theme path e.g. /themen/ard
-   * @param page page number
+   * @param path     theme path e.g. /themen/ard
+   * @param page     page number
    * @param pageSize number of items per page
    * @return theme page article and related articles
    */
-  def findDetails(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse]
+  def findDetailsByPath(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse]
+
+  /**
+   * Search for theme page article and related by theme id.
+   *
+   * @param id       theme article id
+   * @param page     page number
+   * @param pageSize number of items per page
+   * @return theme page article and related articles
+   */
+  def findDetailsById(id: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse]
 }
 
 @Singleton
@@ -31,7 +41,7 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
                                        metrics: Metrics,
                                        pressedContentService: PressedContentService,
                                        capi: CapiExecutionContext)
-  extends AbstractService[ThemeDetails](ws, metrics, ServiceConfiguration("theme_details_service"), capi)
+  extends AbstractService[ThemeDetails](ws, metrics, ServiceConfiguration("theme_service"), capi)
     with DetailsThemeService {
 
   import AbstractService.implicitConversions._
@@ -40,13 +50,21 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
     response.json.result.validate[ThemeDetails](PressedReads.detailsResponseItemReads)
 
 
-  override def findDetails(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] = {
-    val detailsFuture: Future[ThemeDetails] = execute(
-      urlArguments = Seq(path),
-      parameters = Seq("page" -> page.toString, "pageSize" -> pageSize.toString)
+  override def findDetailsByPath(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] =
+    execute(
+      parameters = Seq("path" -> path, "page" -> page.toString, "pageSize" -> pageSize.toString)
     )
+      .map(toApiPressedContentResponse)(capi)
 
-    detailsFuture.map(details => ApiPressedContentResponse(
+
+  override def findDetailsById(id: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] =
+    execute(
+      parameters = Seq("id" -> id, "page" -> page.toString, "pageSize" -> pageSize.toString)
+    )
+      .map(toApiPressedContentResponse)(capi)
+
+  private def toApiPressedContentResponse(details: ThemeDetails) = {
+    ApiPressedContentResponse(
       source = "theme-service",
       total = Some(details.total),
       pages = Some(details.pages),
@@ -56,7 +74,7 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
         content = details.content,
         related = Some(details.related.map(pressedContentService.pressSingleApiContent))
       )
-    ))(capi)
+    )
   }
 }
 

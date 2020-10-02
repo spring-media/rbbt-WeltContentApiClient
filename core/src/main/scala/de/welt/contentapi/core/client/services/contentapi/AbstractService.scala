@@ -55,13 +55,13 @@ abstract class AbstractService[T](ws: WSClient,
     * report the breaker state as a gauge to metrics, only if breaker is enabled
     */
   if (config.circuitBreaker.enabled) {
-    metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
-      override def getValue: Int = breakerState()
-    })
-    log.info(s"Circuit Breaker enabled for ${config.serviceName}")
-  } else {
-    log.info(s"Circuit Breaker NOT enabled for ${config.serviceName}")
+    Try {
+      metrics.defaultRegistry.register(s"service.${config.serviceName}.circuit_breaker", new Gauge[Int]() {
+        override def getValue: Int = breakerState()
+      })
+    }
   }
+  log.info(s"Circuit Breaker configuration: ${config.circuitBreaker}")
 
   /**
     * this circuit breaker's current state
