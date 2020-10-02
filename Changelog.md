@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.6
+- improved logging for circuit breaker settings
+- make all theme clients to use same configuration
+
 ## 8.5
 - separated theme service into 2 clients
 
