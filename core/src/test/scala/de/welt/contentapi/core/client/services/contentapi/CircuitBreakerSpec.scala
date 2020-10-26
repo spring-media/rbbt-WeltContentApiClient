@@ -1,5 +1,7 @@
 package de.welt.contentapi.core.client.services.contentapi
 
+import java.net.URI
+
 import akka.pattern.CircuitBreakerOpenException
 import com.codahale.metrics.Timer.Context
 import de.welt.contentapi.core.client.TestExecutionContext
@@ -36,6 +38,8 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
           override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
         }
+
+        when(mockRequest.uri).thenReturn(URI.create("http://some"))
 
       }
 
@@ -165,7 +169,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
           override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
         }
-
+        when(mockRequest.uri).thenReturn(URI.create("http://some"))
       }
 
       "execute multiple requests in case of no errors" in new BreakerDisabled {

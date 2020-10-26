@@ -1,5 +1,7 @@
 package de.welt.contentapi.core.client.services.contentapi
 
+import java.net.URI
+
 import com.codahale.metrics.Timer.Context
 import com.kenshoo.play.metrics.Metrics
 import de.welt.contentapi.core.client.TestExecutionContext
@@ -33,6 +35,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
       override protected def initializeMetricsContext(name: String): Context = mockTimerContext
 
+      when(mockRequest.uri).thenReturn(URI.create("http://some"))
     }
 
   }
@@ -185,7 +188,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       verify(mockRequest).execute(method = ArgumentMatchers.eq("not-validated-method-name"))
     }
 
-    "will return the expected result for 200 OK responses" in new TestScopeBasicAuth {
+    "return the expected result for 200 OK responses" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(OK)
       when(responseMock.json).thenReturn(JsString("the result"))
 
@@ -194,7 +197,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       result1 mustBe "the result"
     }
 
-    "will return the expected result for 201 CREATED responses" in new TestScopeBasicAuth {
+    "return the expected result for 201 CREATED responses" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(CREATED)
       when(responseMock.json).thenReturn(JsString("the result"))
 
@@ -203,7 +206,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       result1 mustBe "the result"
     }
 
-    "will throw a RedirectErrorException when WS status is 301" in new TestScopeBasicAuth {
+    "throw a RedirectErrorException when WS status is 301" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(MOVED_PERMANENTLY)
 
       val result: Future[String] = new TestService().execute(Seq("requested-id"), Seq.empty)
@@ -214,7 +217,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       }
     }
 
-    "will throw a ClientErrorException when WS status is 404" in new TestScopeBasicAuth {
+    "throw a ClientErrorException when WS status is 404" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(NOT_FOUND)
       when(responseMock.header(HeaderNames.CACHE_CONTROL)).thenReturn(Some("cache-header-value"))
 
@@ -226,7 +229,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       }
     }
 
-    "will throw a ServerErrorException when WS status is 504" in new TestScopeBasicAuth {
+    "throw a ServerErrorException when WS status is 504" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(GATEWAY_TIMEOUT)
 
       val result: Future[String] = new TestService().execute(Seq("requested-id"), Seq.empty)
@@ -237,7 +240,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       }
     }
 
-    "will invoke metrics" in new TestScopeBasicAuth {
+    "invoke metrics" in new TestScopeBasicAuth {
       when(responseMock.status).thenReturn(OK)
       when(responseMock.json).thenReturn(JsString(""))
 
