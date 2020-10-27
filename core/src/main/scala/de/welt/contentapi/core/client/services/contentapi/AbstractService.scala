@@ -127,7 +127,7 @@ abstract class AbstractService[T](ws: WSClient,
 
     lazy val block = request.execute(config.method).map { response =>
       context.stop()
-      processResponse(response, request.uri.toString)
+      processResponse(response, request)
     }
 
     if (config.circuitBreaker.enabled) {
@@ -154,13 +154,13 @@ abstract class AbstractService[T](ws: WSClient,
     metrics.defaultRegistry.timer(MetricRegistry.name(s"service.$name", "requestTimer")).time()
   }
 
-  private[contentapi] def processResponse(response: WSResponse, uri: String): T = response.status match {
+  private[contentapi] def processResponse(response: WSResponse, request: WSRequest): T = response.status match {
     case Status.OK | Status.CREATED => processResult(response)
-    case status if (300 until 400).contains(status) => throw HttpRedirectException(uri, response.statusText)
-    case Status.UNAUTHORIZED  => throw HttpServerErrorException(Status.NETWORK_AUTHENTICATION_REQUIRED, response.statusText, uri)
+    case status if (300 until 400).contains(status) => throw HttpRedirectException(request.url, response.statusText)
+    case Status.UNAUTHORIZED  => throw HttpServerErrorException(Status.NETWORK_AUTHENTICATION_REQUIRED, response.statusText, request.url)
     case status if (400 until 500).contains(status) =>
-      throw HttpClientErrorException(status, response.statusText, uri, response.header(HeaderNames.CACHE_CONTROL))
-    case status => throw HttpServerErrorException(status, response.statusText, uri)
+      throw HttpClientErrorException(status, response.statusText, request.uri.toString, response.header(HeaderNames.CACHE_CONTROL))
+    case status => throw HttpServerErrorException(status, response.statusText, request.uri.toString)
   }
 
   private def processResult(result: WSResponse): T = validate(result) match {

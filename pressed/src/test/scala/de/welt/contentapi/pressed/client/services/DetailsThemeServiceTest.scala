@@ -1,7 +1,5 @@
 package de.welt.contentapi.pressed.client.services
 
-import java.net.URI
-
 import akka.actor.ActorSystem
 import com.codahale.metrics.Timer.Context
 import com.kenshoo.play.metrics.Metrics
@@ -39,7 +37,6 @@ class DetailsThemeServiceTest extends PlaySpec with MockitoSugar {
       responseMock
     })
 
-    when(mockRequest.uri).thenReturn(URI.create("https://theme-service-ecs-production.up.welt.de/themes"))
     when(metricsMock.defaultRegistry).thenReturn(new com.codahale.metrics.MetricRegistry())
     when(mockWsClient.url(anyString)).thenReturn(mockRequest)
   }
