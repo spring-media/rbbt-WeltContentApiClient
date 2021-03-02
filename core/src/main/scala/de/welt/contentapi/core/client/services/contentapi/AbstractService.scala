@@ -1,7 +1,7 @@
 package de.welt.contentapi.core.client.services.contentapi
 
 import akka.actor.Scheduler
-import akka.pattern.CircuitBreaker
+import akka.pattern.{CircuitBreaker, CircuitBreakerOpenException}
 import com.codahale.metrics.{Gauge, MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
 import de.welt.contentapi.core.client.services.CapiExecutionContext
@@ -13,7 +13,7 @@ import play.api.http.{HeaderNames, Status}
 import play.api.libs.json.{JsError, JsResult, JsSuccess}
 import play.api.libs.ws.{BodyWritable, WSAuthScheme, WSClient, WSRequest, WSResponse}
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, TimeoutException}
 import scala.util.{Failure, Success, Try}
 
 abstract class AbstractService[T](ws: WSClient,
@@ -83,6 +83,21 @@ abstract class AbstractService[T](ws: WSClient,
     -1
   }
 
+  def execute[U: BodyWritable](urlArguments: Seq[String] = Nil,
+                               parameters: Seq[(String, String)] = Nil,
+                               headers: Seq[(String, String)] = Nil,
+                               body: Option[U] = None)
+                              (implicit forwardedRequestHeaders: RequestHeaders = Seq.empty): Future[T] = {
+    executeInternal(urlArguments, parameters, headers, body)
+      .recover {
+        case ex: CircuitBreakerOpenException =>
+          throw new CircuitBreakerStateException(s"CircuitBreaker [${config.serviceName}] is still open", ex)
+
+        case ex: TimeoutException =>
+          throw new CircuitBreakerStateException(s"Circuit Breaker Timed out for [${config.serviceName}]", ex)
+      }
+  }
+
   /**
     * @param urlArguments            string interpolation arguments for endpoint. e.g. /foo/%s/bar/%s see [[java.lang.String#format}]]
     * @param parameters              URL parameters to be sent with the request
@@ -91,7 +106,7 @@ abstract class AbstractService[T](ws: WSClient,
     * @param forwardedRequestHeaders forwarded request headers from the controller e.g. API key
     * @return
     */
-  def execute[U: BodyWritable](urlArguments: Seq[String] = Nil,
+  private def executeInternal[U: BodyWritable](urlArguments: Seq[String] = Nil,
                                parameters: Seq[(String, String)] = Nil,
                                headers: Seq[(String, String)] = Nil,
                                body: Option[U] = None)
@@ -179,7 +194,6 @@ object AbstractService extends Loggable {
     callTimeout = config.circuitBreaker.callTimeout,
     resetTimeout = config.circuitBreaker.resetTimeout)
     .withExponentialBackoff(config.circuitBreaker.exponentialBackoff)
-    .onOpen(log.error(s"CircuitBreaker [$serviceName] is now open [this is bad], and will not close for some time"))
     .onClose(log.warn(s"CircuitBreaker [$serviceName] is now closed [this is good]"))
     .onHalfOpen(log.warn(s"CircuitBreaker [$serviceName] is now half-open [trying to recover]"))
 
@@ -191,3 +205,5 @@ object AbstractService extends Loggable {
   }
 
 }
+
+class CircuitBreakerStateException(message: String, cause: Exception) extends Exception(message, cause)
