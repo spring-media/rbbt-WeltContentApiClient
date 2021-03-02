@@ -1,8 +1,5 @@
 package de.welt.contentapi.core.client.services.contentapi
 
-import java.net.URI
-
-import akka.pattern.CircuitBreakerOpenException
 import com.codahale.metrics.Timer.Context
 import de.welt.contentapi.core.client.TestExecutionContext
 import de.welt.contentapi.core.client.services.configuration._
@@ -10,13 +7,14 @@ import de.welt.contentapi.core.client.services.exceptions.{HttpClientErrorExcept
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.{never, times, verify, when}
 import org.scalatest.concurrent.Eventually
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.JsString
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers
 
+import java.net.URI
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Try
@@ -58,7 +56,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
       "should reject requests when breaker opens" in new BreakerEnabled {
         val service = new TestService()
         service.breaker.fail()
-        assertThrows[CircuitBreakerOpenException] {
+        assertThrows[CircuitBreakerStateException] {
           Await.result(service.execute(), 1.second)
         }
       }
@@ -66,7 +64,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
       "close breaker if request succeeds when half-open" in new BreakerEnabled with Eventually {
         val service = new TestService()
         service.breaker.fail()
-        assertThrows[CircuitBreakerOpenException] {
+        assertThrows[CircuitBreakerStateException] {
           Await.result(service.execute(), 1.second)
         }
         // wait for breaker to half-open
@@ -87,7 +85,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
       "open breaker if request fails when half-open" in new BreakerEnabled with Eventually {
         val service = new TestService()
         service.breaker.fail()
-        assertThrows[CircuitBreakerOpenException] {
+        assertThrows[CircuitBreakerStateException] {
           Await.result(service.execute(), 1.second)
         }
         // wait for breaker to half-open
@@ -98,7 +96,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
         // succeeding call should reset the breaker to "closed"
         service.breaker.isOpen mustBe true
         // next call should fail
-        assertThrows[CircuitBreakerOpenException] {
+        assertThrows[CircuitBreakerStateException] {
           Await.result(service.execute(), 1.second)
         }
 
@@ -148,7 +146,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
           Await.result(service.execute(), 1.second)
         }
         // the second request will hit the open breaker
-        assertThrows[CircuitBreakerOpenException] {
+        assertThrows[CircuitBreakerStateException] {
           Await.result(service.execute(), 1.second)
         }
         service.breaker.isOpen mustBe true
@@ -178,7 +176,7 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
         when(responseMock.json).thenReturn(JsString(""))
 
         val service = new TestService()
-        for {i <- 1 to 100} {
+        for {_ <- 1 to 100} {
           Await.result(service.execute(), 1.second)
         }
         verify(mockRequest, times(100)).execute(anyString())
@@ -234,17 +232,14 @@ class CircuitBreakerSpec extends PlaySpec with MockitoSugar with TestExecutionCo
         assertThrows[HttpServerErrorException] {
           Await.result(service.execute(), 1.second)
         }
-
       }
-
     }
   }
-
 }
 
 object CircuitBreakerSpec {
 
-  val breakerEnabled = ServiceConfiguration(
+  val breakerEnabled: ServiceConfiguration = ServiceConfiguration(
     serviceName = "test",
     host = "http://www.example.com",
     endpoint = "/test",
@@ -256,7 +251,7 @@ object CircuitBreakerSpec {
       exponentialBackoff = 2.seconds),
   )
 
-  val breakerDisabled = ServiceConfiguration(
+  val breakerDisabled: ServiceConfiguration = ServiceConfiguration(
     serviceName = "test",
     host = "http://www.example.com",
     endpoint = "/test",
