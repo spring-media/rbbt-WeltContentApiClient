@@ -76,7 +76,8 @@ class DetailsThemeServiceTest extends PlaySpec with MockitoSugar {
         currentPage = Some(1)
       ))
 
-      verify(mockRequest).withQueryStringParameters(Seq("path" -> "ard", "page" -> "1", "pageSize" -> "1"): _*)
+      val queryParameters = Seq("path" -> "ard", "page" -> "1", "pageSize" -> "1", "teaserOnly" -> "true")
+      verify(mockRequest).withQueryStringParameters(queryParameters: _*)
       verify(mockWsClient).url("localhost/themes")
     }
   }
@@ -114,7 +115,8 @@ class DetailsThemeServiceTest extends PlaySpec with MockitoSugar {
       currentPage = Some(1)
     ))
 
-    verify(mockRequest).withQueryStringParameters(Seq("id" -> "1", "page" -> "1", "pageSize" -> "1"): _*)
+    val queryParameters = Seq("id" -> "1", "page" -> "1", "pageSize" -> "1", "teaserOnly" -> "true")
+    verify(mockRequest).withQueryStringParameters(queryParameters: _*)
     verify(mockWsClient).url("localhost/themes")
   }
 }

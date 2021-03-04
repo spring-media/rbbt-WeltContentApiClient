@@ -23,7 +23,11 @@ trait DetailsThemeService {
    * @param pageSize number of items per page
    * @return theme page article and related articles
    */
-  def findDetailsByPath(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse]
+  def findDetailsByPath(path: String,
+                        page: Int,
+                        pageSize: Int,
+                        teaserOnly: Boolean = true
+                       ): Future[ApiPressedContentResponse]
 
   /**
    * Search for theme page article and related by theme id.
@@ -33,7 +37,11 @@ trait DetailsThemeService {
    * @param pageSize number of items per page
    * @return theme page article and related articles
    */
-  def findDetailsById(id: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse]
+  def findDetailsById(id: String,
+                      page: Int,
+                      pageSize: Int,
+                      teaserOnly: Boolean = true
+                     ): Future[ApiPressedContentResponse]
 }
 
 @Singleton
@@ -50,18 +58,33 @@ class DetailsThemeServiceIml @Inject()(ws: WSClient,
     response.json.result.validate[ThemeDetails](PressedReads.detailsResponseItemReads)
 
 
-  override def findDetailsByPath(path: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] =
+  override def findDetailsByPath(path: String,
+                                 page: Int,
+                                 pageSize: Int,
+                                 teaserOnly: Boolean = true
+                                ): Future[ApiPressedContentResponse] =
     execute(
-      parameters = Seq("path" -> path, "page" -> page.toString, "pageSize" -> pageSize.toString)
+      parameters = ("path", path) +: defaultParameters(page, pageSize, teaserOnly)
     )
       .map(toApiPressedContentResponse)(capi)
 
 
-  override def findDetailsById(id: String, page: Int, pageSize: Int): Future[ApiPressedContentResponse] =
+  override def findDetailsById(id: String,
+                               page: Int,
+                               pageSize: Int,
+                               teaserOnly: Boolean = true
+                              ): Future[ApiPressedContentResponse] =
     execute(
-      parameters = Seq("id" -> id, "page" -> page.toString, "pageSize" -> pageSize.toString)
+      parameters = ("id", id) +: defaultParameters(page, pageSize, teaserOnly)
     )
       .map(toApiPressedContentResponse)(capi)
+
+  private def defaultParameters(page: Int, pageSize: Int, teaserOnly: Boolean = true): Seq[(String, String)] =
+    Seq(
+      "page" -> page.toString,
+      "pageSize" -> pageSize.toString,
+      "teaserOnly" -> teaserOnly.toString
+    )
 
   private def toApiPressedContentResponse(details: ThemeDetails) = {
     ApiPressedContentResponse(

@@ -1,5 +1,8 @@
 # Changelog
 
+## 8.7
+- added teaserOnly parameter for DetailsThemeService
+
 ## 8.6
 - improved logging for circuit breaker settings
 - make all theme clients to use same configuration
