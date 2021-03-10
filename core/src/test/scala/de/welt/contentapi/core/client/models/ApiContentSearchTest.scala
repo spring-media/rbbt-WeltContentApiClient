@@ -11,11 +11,6 @@ class ApiContentSearchTest extends PlaySpec {
   "ApiContentSearch" should {
 
   }
-  "use all declared fields for creating the query parameters" in {
-    val query: ApiContentSearch = ApiContentSearch(`type` = MainTypeParam(List("live")))
-
-    query.allParams.size mustBe query.getClass.getDeclaredFields.length
-  }
 
   "create a list of key value strings from all passed parameters which can be passed into the model" in {
     val query: ApiContentSearch = ApiContentSearch(
@@ -31,6 +26,7 @@ class ApiContentSearchTest extends PlaySpec {
       id = IdParam(List("-157673104", "-157078453")),
       themePageId = ThemePageIdParam("109266998"),
       includeFields = IncludeFieldsParam("webUrl", "id"),
+      teaserOnlyParam = TeaserOnlyParam(true)
     )
 
     val allParams = query.getAllParamsUnwrapped
@@ -47,18 +43,19 @@ class ApiContentSearchTest extends PlaySpec {
     allParams must contain("id" -> "-157673104,-157078453")
     allParams must contain("themepage" -> "109266998")
     allParams must contain("fields" -> "webUrl,type,id")
+    allParams must contain("teaserOnly" -> "true")
   }
 
   "create comma separated tags parameter" in {
     val query = ApiContentSearch(tag = AllTagParam(List("person-5", "thing-57")))
 
-    query.getAllParamsUnwrapped mustBe List("tag" -> "person-5,thing-57")
+    query.getAllParamsUnwrapped mustBe List("tag" -> "person-5,thing-57", "teaserOnly" -> "false")
   }
 
   "create a list of key value strings only from defined parameters" in {
     val query: ApiContentSearch = ApiContentSearch(`type` = MainTypeParam(List("live")))
 
-    query.getAllParamsUnwrapped mustBe List("type" -> "live")
+    query.getAllParamsUnwrapped mustBe List("type" -> "live", "teaserOnly" -> "false")
   }
 
   "main type is ','ed" in {

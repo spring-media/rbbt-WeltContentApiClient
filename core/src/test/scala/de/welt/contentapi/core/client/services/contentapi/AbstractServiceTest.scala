@@ -27,7 +27,15 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
   trait TestScopeBasicAuth extends AbstractServiceTest.TestScope {
 
-    class TestService extends AbstractService[String](mockWsClient, metricsMock, TestServiceWithBasicAuth, executionContext) {
+    val basicAuthConfig: ServiceConfiguration = ServiceConfiguration(
+      serviceName = "test",
+      host = "http://www.example.com",
+      endpoint = "/test/%s",
+      credentials = Some(BasicAuth(BasicUsername("user"), BasicPassword("pass"))),
+    )
+
+    class TestService(config: ServiceConfiguration = basicAuthConfig)
+      extends AbstractService[String](mockWsClient, metricsMock, config, executionContext) {
 
       import AbstractService.implicitConversions._
 
@@ -37,36 +45,27 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
       when(mockRequest.uri).thenReturn(URI.create("http://some"))
     }
-
   }
 
   trait TestScopeApiKey extends AbstractServiceTest.TestScope {
 
-    class TestService extends AbstractService[String](mockWsClient, metricsMock, TestServiceWithApiKey, executionContext) {
+    val apiKeyConfig: ServiceConfiguration = ServiceConfiguration(
+      serviceName = "test",
+      host = "http://www.example.com",
+      endpoint = "/test/%s",
+      credentials = Some(ApiKey("foo"))
+    )
+
+    class TestService(config: ServiceConfiguration = apiKeyConfig)
+      extends AbstractService[String](mockWsClient, metricsMock, config, executionContext) {
 
       import AbstractService.implicitConversions._
 
       override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
 
       override protected def initializeMetricsContext(name: String): Context = mockTimerContext
-
     }
-
   }
-
-  val TestServiceWithBasicAuth = ServiceConfiguration(
-    serviceName = "test",
-    host = "http://www.example.com",
-    endpoint = "/test/%s",
-    credentials = Some(BasicAuth(BasicUsername("user"), BasicPassword("pass"))),
-  )
-
-  val TestServiceWithApiKey = ServiceConfiguration(
-    serviceName = "test",
-    host = "http://www.example.com",
-    endpoint = "/test/%s",
-    credentials = Some(ApiKey("foo"))
-  )
 
   "AbstractService" should {
 
@@ -90,7 +89,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
     "forward the basic auth data" in new TestScopeBasicAuth {
       private val service = new TestService()
       service.execute(Seq("fake-id"), Seq("foo" -> "bar"))
-      val ba = service.config.credentials.get.asInstanceOf[BasicAuth]
+      val ba: BasicAuth = service.config.credentials.get.asInstanceOf[BasicAuth]
       verify(mockRequest).withAuth(ba.username.v, ba.password.v, WSAuthScheme.BASIC)
     }
 
@@ -131,14 +130,17 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
     }
 
     "strip nonbreaking whitespace from parameters" in new TestScopeBasicAuth {
-      new TestService().execute(Seq("strange-whitespaces"), ApiContentSearch(MainTypeParam(List("\u00A0", " ", "\t", "\n"))).getAllParamsUnwrapped)
-      verify(mockRequest).withQueryStringParameters()
+      val parameters: Seq[(String, String)] = ApiContentSearch(MainTypeParam(List("\u00A0", " ", "\t", "\n")))
+        .getAllParamsUnwrapped
+      new TestService().execute(Seq("strange-whitespaces"), parameters)
+      verify(mockRequest).withQueryStringParameters(parameters = "teaserOnly" -> "false")
     }
 
     "not strip valid parameters" in new TestScopeBasicAuth {
-      val parameters = ApiContentSearch(MainTypeParam(List("param1", "\u00A0param2\u00A0", "\u00A0"))).getAllParamsUnwrapped
+      val parameters: Seq[(String, String)] = ApiContentSearch(MainTypeParam(List("param1", "\u00A0param2\u00A0", "\u00A0")))
+        .getAllParamsUnwrapped
       new TestService().execute(Seq("strange-whitespaces"), parameters)
-      verify(mockRequest).withQueryStringParameters("type" -> Seq("param1", "param2").mkString(MainTypeParam().operator))
+      verify(mockRequest).withQueryStringParameters(parameters = "type" -> "param1,param2", "teaserOnly" -> "false")
     }
 
     "strip empty elements from the query string" in new TestScopeBasicAuth {
@@ -171,19 +173,9 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       verify(mockRequest).withBody(ArgumentMatchers.eq("Howdy fellas"))(ArgumentMatchers.any())
     }
 
-    "configured method will be used" in new AbstractServiceTest.TestScope {
-
-      class TestService extends AbstractService[String](mockWsClient, metricsMock, TestServiceWithApiKey.copy(method = "not-validated-method-name"), executionContext) {
-
-        import AbstractService.implicitConversions._
-
-        override val validate: WSResponse => Try[String] = response => response.json.result.validate[String]
-
-        override protected def initializeMetricsContext(name: String): Context = mockTimerContext
-
-      }
-
-      new TestService().execute(urlArguments = Seq("x"))
+    "configured method will be used" in new TestScopeBasicAuth {
+      new TestService(basicAuthConfig.copy(method = "not-validated-method-name"))
+        .execute(urlArguments = Seq("x"))
 
       verify(mockRequest).execute(method = ArgumentMatchers.eq("not-validated-method-name"))
     }
@@ -192,9 +184,8 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       when(responseMock.status).thenReturn(OK)
       when(responseMock.json).thenReturn(JsString("the result"))
 
-      val result: Future[String] = new TestService().execute(Seq("x"), Seq.empty)
-      val result1 = Await.result(result, 10.second)
-      result1 mustBe "the result"
+      val futureResult: Future[String] = new TestService().execute(Seq("x"), Seq.empty)
+      Await.result(futureResult, 10.second) mustBe "the result"
     }
 
     "return the expected result for 201 CREATED responses" in new TestScopeBasicAuth {
@@ -202,8 +193,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
       when(responseMock.json).thenReturn(JsString("the result"))
 
       val result: Future[String] = new TestService().execute(Seq("x"), Seq.empty)
-      val result1 = Await.result(result, 10.second)
-      result1 mustBe "the result"
+      Await.result(result, 10.second) mustBe "the result"
     }
 
     "throw a RedirectErrorException when WS status is 301" in new TestScopeBasicAuth {
@@ -255,7 +245,7 @@ class AbstractServiceTest extends PlaySpec with MockitoSugar with Status with Te
 
       val result: Future[String] = new TestService().execute(Seq("x"))
 
-      val exp = the [HttpServerErrorException] thrownBy Await.result(result, 10.second)
+      val exp: HttpServerErrorException = the[HttpServerErrorException] thrownBy Await.result(result, 10.second)
       exp.statusCode mustBe NETWORK_AUTHENTICATION_REQUIRED
     }
 

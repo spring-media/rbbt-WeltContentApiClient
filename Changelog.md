@@ -1,5 +1,10 @@
 # Changelog
 
+## 8.8
+- added teaserOnly parameter for ApiContentSearch
+- removed some deprecated constructors
+- search parameters refactored a bit 
+
 ## 8.7
 - added teaserOnly parameter for DetailsThemeService
 
@@ -13,7 +18,7 @@
 ## 8.4
 - added theme service
 
-### 8.3
+## 8.3
 - [RAW] added optional field `limit` as part of `RawTrackingReportFallbackConfig`
 - [API] added optional field `limit` as part of `ApiTrackingReportFallbackConfiguration`
 

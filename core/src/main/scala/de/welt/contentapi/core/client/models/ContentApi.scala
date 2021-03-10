@@ -1,9 +1,9 @@
 package de.welt.contentapi.core.client.models
 
-import java.time.Instant
-
+import de.welt.contentapi.utils.Loggable
 import de.welt.contentapi.utils.Strings._
-import play.api.Logger
+
+import java.time.Instant
 
 /**
  * Wrapper to configure a search against the content API. For params and values see https://doug-ecs-production.up.welt.de/#_request_parameters
@@ -20,15 +20,9 @@ case class ApiContentSearch(`type`: MainTypeParam = MainTypeParam(),
                             fromDate: FromDateParam = FromDateParam(),
                             id: IdParam = IdParam(),
                             themePageId: ThemePageIdParam = ThemePageIdParam(),
-                            includeFields: IncludeFieldsParam = IncludeFieldsParam()
+                            includeFields: IncludeFieldsParam = IncludeFieldsParam(),
+                            teaserOnlyParam: TeaserOnlyParam = TeaserOnlyParam()
                            ) {
-  protected[models] def allParams = Seq(
-    id, `type`, subType,
-    section, homeSection, sectionExcludes,
-    flag, tag,
-    pageSize, page, fromDate,
-    themePageId, includeFields
-  )
 
   /**
    * Returns tuples of params and their respective values {{{type -> news}}}.
@@ -36,19 +30,14 @@ case class ApiContentSearch(`type`: MainTypeParam = MainTypeParam(),
    *
    * @return parameters as tuple to be used directly with [[play.api.libs.ws.WSRequest.withQueryStringParameters()]]
    */
-  def getAllParamsUnwrapped: Seq[(String, String)] = allParams.flatMap(_.asTuple)
+  def getAllParamsUnwrapped: Seq[(String, String)] =
+    productIterator.flatMap { case value: AbstractParam[_] => value.asTuple }.toSeq
 }
 
 sealed trait AbstractParam[T] {
 
-  /**
-   * @return parameter name
-   */
   def name: String
 
-  /**
-   * @return parameter value(s)
-   */
   def value: T
 
   /**
@@ -63,145 +52,117 @@ sealed trait AbstractParam[T] {
   def asTuple: Option[(String, String)] = valueToStringOpt(value).map { v => (name, v) }
 }
 
-object Operator {
-  val Or = "|"
-  val And = ","
-}
-
-protected abstract class ListParam[T](override val value: List[T]) extends AbstractParam[List[T]] {
+trait ListParam[T] extends AbstractParam[List[T]] {
   def operator: String = Operator.And
 
   override def valueToStringOpt: List[T] => Option[String] = {
     case Nil => None
     case list =>
-      val cleanedList = list.map(PrimitiveParam[T]().valueToStringOpt).collect {
-        case Some(v) => v
-      }.mkString(operator)
-      Some(cleanedList)
+      val cleanedList = list
+        .map(PrimitiveParam.valueToStringOpt)
+        .collect { case Some(v) => v }
+      Some(cleanedList.mkString(operator))
   }
 }
 
-protected abstract class ValueParam[T](override val value: T) extends AbstractParam[T] {
-  override def valueToStringOpt: T => Option[String] = PrimitiveParam[T]().valueToStringOpt
+trait ValueParam[T] extends AbstractParam[T] {
+  override def valueToStringOpt: T => Option[String] = PrimitiveParam.valueToStringOpt
 }
 
-private case class PrimitiveParam[T]() {
-  /**
-   * Validate some basic types and return [[scala.None]] if value is invalid or empty
-   *
-   * @return
-   */
-  //noinspection ScalaStyle
-  def valueToStringOpt: T => Option[String] = {
-    case s: String if containsTextContent(s) => Some(stripWhiteSpaces(s))
-    case _: String => None
-
-    case i: Int if Int.MinValue != i => Some(i.toString)
-    case _: Int => None
-
-    case i: Instant if Instant.MIN != i => Some(i.toString)
-    case _: Instant => None
-
-    case unknown@_ =>
-      Logger(getClass.getName.stripSuffix("$")).warn(s"Unknown value type: ${unknown.getClass.toString}")
-      None
-  }
-}
-
-case class MainTypeParam(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class MainTypeParam(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "type"
 }
 
-case class SubTypeParam(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class SubTypeParam(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "subType"
 }
 
-case class SectionParam(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class SectionParam(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "sectionPath"
 
   override def operator: String = Operator.Or
 }
 
-case class HomeSectionParam(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class HomeSectionParam(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "sectionHome"
 
   override def operator: String = Operator.Or
 }
 
-case class SectionExcludes(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class SectionExcludes(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "excludeSections"
 }
 
-case class FlagParam(override val value: List[String] = Nil) extends ListParam[String](value) {
-  @deprecated(message = "Use the primary constructor instead", since = "0.8")
-  def this(singleValue: String) {
-    this(List(singleValue))
-  }
+case class FlagParam(override val value: List[String] = Nil) extends ListParam[String] {
 
   override val name: String = "flag"
 }
 
-abstract class TagParam(override val value: List[String] = Nil) extends ListParam[String](value) {
+trait TagParam extends ListParam[String] {
   override val name: String = "tag"
+}
 
+case class AnyTagParam(override val value: List[String] = Nil) extends TagParam {
   override def operator: String = Operator.Or
 }
 
-case class AnyTagParam(override val value: List[String] = Nil) extends TagParam(value) {
-  override def operator: String = Operator.Or
-}
-
-case class AllTagParam(override val value: List[String] = Nil) extends TagParam(value) {
+case class AllTagParam(override val value: List[String] = Nil) extends TagParam {
   override def operator: String = Operator.And
 }
 
-case class PageSizeParam(override val value: Int = Int.MinValue) extends ValueParam[Int](value) {
+case class PageSizeParam(override val value: Int = Int.MinValue) extends ValueParam[Int] {
   override val name: String = "pageSize"
 }
 
-case class PageParam(override val value: Int = Int.MinValue) extends ValueParam[Int](value) {
+case class PageParam(override val value: Int = Int.MinValue) extends ValueParam[Int] {
   override val name: String = "page"
 }
 
-case class FromDateParam(override val value: Instant = Instant.MIN) extends ValueParam[Instant](value) {
+case class FromDateParam(override val value: Instant = Instant.MIN) extends ValueParam[Instant] {
   override val name: String = "fromDate"
 }
 
-case class ThemePageIdParam(override val value: String = "") extends ValueParam[String](value) {
+case class ThemePageIdParam(override val value: String = "") extends ValueParam[String] {
   override val name: String = "themepage"
 }
 
-case class IdParam(override val value: List[String] = Nil) extends ListParam[String](value) {
+case class IdParam(override val value: List[String] = Nil) extends ListParam[String] {
   override val name: String = "id"
 }
 
-case class IncludeFieldsParam(override val value: List[String] = Nil) extends ListParam[String](value) {
+case class IncludeFieldsParam(override val value: List[String] = Nil) extends ListParam[String] {
   override val name: String = "fields"
+}
+
+case class TeaserOnlyParam(override val value: Boolean = false) extends ValueParam[Boolean] {
+  override val name: String = "teaserOnly"
+}
+
+object PrimitiveParam extends Loggable {
+
+  def valueToStringOpt[T]: T => Option[String] = {
+    case s: String => Option.when(containsTextContent(s))(stripWhiteSpaces(s))
+
+    case i: Int => Option.when(Int.MinValue != i)(i.toString)
+
+    case i: Instant => Option.when(Instant.MIN != i)(i.toString)
+
+    case b: Boolean => Some(b.toString)
+
+    case unknown =>
+      log.warn(s"Unknown value type: ${unknown.getClass.toString}")
+      None
+  }
+}
+
+object Operator {
+  val Or = "|"
+  val And = ","
 }
 
 object IncludeFieldsParam {
